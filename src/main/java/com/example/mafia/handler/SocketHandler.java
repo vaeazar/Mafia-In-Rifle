@@ -22,19 +22,19 @@ public class SocketHandler extends TextWebSocketHandler {
   @Override
   public void handleTextMessage(WebSocketSession session, TextMessage message) {
     //메시지 발송
-    String msg = message.getPayload();
-    for(String key : sessionMap.keySet()) {
-      WebSocketSession wss = sessionMap.get(key);
-      try {
-        String[] splitMSG = msg.split(" : ");
-        MafiaMessage sendData = new MafiaMessage();
-        sendData.setUserId(splitMSG[0]);
-        sendData.setMessage(splitMSG[1]);
-        messageMongoDBRepository.insert(sendData);
+    try {
+      String msg = message.getPayload();
+      String[] splitMSG = msg.split(" : ");
+      MafiaMessage sendData = new MafiaMessage();
+      sendData.setUserId(splitMSG[0]);
+      sendData.setMessage(splitMSG[1]);
+      messageMongoDBRepository.insert(sendData);
+      for (String key : sessionMap.keySet()) {
+        WebSocketSession wss = sessionMap.get(key);
         wss.sendMessage(new TextMessage(msg));
-      }catch(Exception e) {
-        e.printStackTrace();
       }
+    }catch(Exception e) {
+      e.printStackTrace();
     }
   }
 
