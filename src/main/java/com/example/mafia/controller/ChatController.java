@@ -6,10 +6,18 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class ChatController {
-  @RequestMapping("/MafiaChat")
+
+  @RequestMapping("/mafiaChat")
   public ModelAndView MafiaChat() {
     ModelAndView mv = new ModelAndView();
-    mv.setViewName("MafiaChat");
+    mv.setViewName("mafiaChat");
+    return mv;
+  }
+
+  @RequestMapping("/")
+  public ModelAndView Index() {
+    ModelAndView mv = new ModelAndView();
+    mv.setViewName("mafiaChat");
     return mv;
   }
 }
