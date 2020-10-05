@@ -9,5 +9,4 @@ public class MafiaApplication {
   public static void main(String[] args) {
     SpringApplication.run(MafiaApplication.class, args);
   }
-
 }
