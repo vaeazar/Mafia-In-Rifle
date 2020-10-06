@@ -19,6 +19,14 @@ public class MainController {
   List<Room> roomList = new ArrayList<Room>();
   static int roomNumber = 0;
 
+
+  @RequestMapping("/")
+  public ModelAndView Index() {
+    ModelAndView mv = new ModelAndView();
+    mv.setViewName("room");
+    return mv;
+  }
+
   /**
    * 방 페이지
    * @return
