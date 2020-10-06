@@ -73,7 +73,8 @@
     });
 
     function wsOpen(){
-        socketVar = new WebSocket("ws://" + location.host + "/chating");
+        //socketVar = new WebSocket("ws://" + location.host + "/chating");
+        socketVar = new WebSocket("ws://" + location.host + "/chating/"+$("#roomNumber").val());
         wsEvt();
     }
 
@@ -141,6 +142,7 @@
         if ($('#mafiaChat').prop("checked")) {
             option = {
                 type: "mafia",
+                roomNumber: $("#roomNumber").val(),
                 sessionId : $("#sessionId").val(),
                 userName : $("#userName").val(),
                 msg : $("#chatting").val()
@@ -148,6 +150,7 @@
         } else {
             option = {
                 type: "message",
+                roomNumber: $("#roomNumber").val(),
                 sessionId : $("#sessionId").val(),
                 userName : $("#userName").val(),
                 msg : $("#chatting").val()
@@ -159,8 +162,9 @@
 </script>
 <body>
 <div id="container" class="container">
-    <h1>채팅</h1>
+    <h1>${roomName}</h1>
     <input type="hidden" id="sessionId" value="">
+    <input type="hidden" id="roomNumber" value="${roomNumber}">
     <input type="hidden" id="myJob" value="mafia">
 
     <div id="chating" class="chating">
