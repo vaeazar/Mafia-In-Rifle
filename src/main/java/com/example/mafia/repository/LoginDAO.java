@@ -1,20 +1,12 @@
 package com.example.mafia.repository;
 
-import com.example.mafia.vo.UserVO;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class LoginDAO {
-  private MongoClientURI uri = null;
+public class LoginDAO extends UserDAO {
+  /*private MongoClientURI uri = null;
   private MongoClient mongoClient = null;
   private MongoDatabase mongodb = null;
   private MongoCollection<Document> collection = null;
@@ -31,11 +23,11 @@ public class LoginDAO {
     } catch (Exception e) {
       log.info(e.getMessage());
     }
-  }
+  }*/
 
   public Document login(String userid, String password) throws Exception {
     Document document = null;
-    document = collection.find(Filters.eq("userid",userid)).first();
+    document = super.collection.find(Filters.eq("userid",userid)).first();
     return document;
   }
 }

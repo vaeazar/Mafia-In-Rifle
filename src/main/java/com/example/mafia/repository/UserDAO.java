@@ -1,7 +1,6 @@
 package com.example.mafia.repository;
 
 import com.example.mafia.vo.UserVO;
-import com.google.gson.Gson;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
@@ -13,16 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 @Repository
 public class UserDAO {
   private MongoClientURI uri = null;
   private MongoClient mongoClient = null;
   private MongoDatabase mongodb = null;
-  private MongoCollection<Document> collection = null;
+  protected MongoCollection<Document> collection = null;
   private MongoCursor<Document> cursor = null;
 
   Logger log = LoggerFactory.getLogger(UserDAO.class);

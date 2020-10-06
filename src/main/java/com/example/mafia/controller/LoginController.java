@@ -22,7 +22,8 @@ public class LoginController {
   @PostMapping("/login.do")
   public ModelAndView login(String userid, String password) {
     ModelAndView mav = new ModelAndView("loginResult");
-    mav.addObject("result",loginService.login(userid,password));
+    String result = Boolean.toString(loginService.login(userid, password));
+    mav.addObject("result",result);
     return mav;
   }
 }
