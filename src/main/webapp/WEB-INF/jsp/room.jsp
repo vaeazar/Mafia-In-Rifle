@@ -98,20 +98,21 @@
         });
     }
 
-    function goRoom(number, name){
-        location.href="/moveChating?roomName="+name+"&"+"roomNumber="+number;
+    function goRoom(number, name, id){
+        location.href="/moveChating?roomNumber="+number+"&"+"roomName="+name+"&"+"roomId="+id;
     }
 
     function createChatingRoom(res){
         if(res != null){
             var tag = "<tr><th class='num'>순서</th><th class='room'>방 이름</th><th class='go'></th></tr>";
-            res.forEach(function(d, idx){
-                var rn = d.roomName.trim();
-                var roomNumber = d.roomNumber;
+            res.forEach(function(newRoom, idx){
+                var newRoomName = newRoom.roomName.trim();
+                var newRoomNumber = newRoom.roomNumber;
+                var newRoomId = newRoom.roomId;
                 tag += "<tr>"+
                     "<td class='num'>"+(idx+1)+"</td>"+
-                    "<td class='room'>"+ rn +"</td>"+
-                    "<td class='go'><button type='button' onclick='goRoom(\""+roomNumber+"\", \""+rn+"\")'>참여</button></td>" +
+                    "<td class='room'>"+ newRoomName +"</td>"+
+                    "<td class='go'><button type='button' onclick='goRoom(\""+newRoomNumber+"\", \""+newRoomName+"\", \""+newRoomId+"\")'>참여</button></td>" +
                     "</tr>";
             });
             $("#roomList").empty().append(tag);
