@@ -1,0 +1,51 @@
+*{
+    margin:0;
+    padding:0;
+}
+.container{
+    width: 500px;
+    margin: 0 auto;
+    padding: 25px
+}
+.container h1{
+    text-align: left;
+    padding: 5px 5px 5px 15px;
+    color: #FFBB00;
+    border-left: 3px solid #FFBB00;
+    margin-bottom: 20px;
+}
+.chating{
+    background-color: #000;
+    width: 500px;
+    height: 500px;
+    overflow: auto;
+    padding: 5px;
+}
+.chating .me{
+    color: #FFE400;
+    text-align: right;
+    word-break: break-all;
+}
+.chating .others{
+    color: #F6F6F6;
+    text-align: left;
+    word-break: break-all;
+}
+.chating .me-mafia{
+    color: #d66fff;
+    text-align: right;
+    word-break: break-all;
+}
+.chating .others-mafia{
+    color: #ff0000;
+    text-align: left;
+    word-break: break-all;
+}
+.chatting-input {
+    width: 330px;
+    height: 25px;
+}
+#yourMsg{
+    display: none;
+    width: 600px;
+}
