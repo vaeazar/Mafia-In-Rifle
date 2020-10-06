@@ -79,6 +79,7 @@ function send() {
         option = {
             type: "mafia",
             roomNumber: $("#roomNumber").val(),
+            roomId: $("#roomId").val(),
             sessionId : $("#sessionId").val(),
             userName : $("#userName").val(),
             msg : $("#chatting").val()
@@ -87,6 +88,7 @@ function send() {
         option = {
             type: "message",
             roomNumber: $("#roomNumber").val(),
+            roomId: $("#roomId").val(),
             sessionId : $("#sessionId").val(),
             userName : $("#userName").val(),
             msg : $("#chatting").val()

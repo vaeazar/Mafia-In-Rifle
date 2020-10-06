@@ -10,6 +10,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
@@ -42,6 +43,9 @@ public class MainController {
       Room room = new Room();
       room.setRoomNumber(++roomNumber);
       room.setRoomName(roomName);
+      String uniqueValue = UUID.randomUUID().toString().substring(0,8);
+      uniqueValue += System.currentTimeMillis();
+      room.setRoomId(uniqueValue);
       roomList.add(room);
     }
     return roomList;
@@ -65,11 +69,13 @@ public class MainController {
   public ModelAndView chating(@RequestParam HashMap<Object, Object> params) {
     ModelAndView mv = new ModelAndView();
     int roomNumber = Integer.parseInt((String) params.get("roomNumber"));
+    String roomId = params.get("roomId").toString();
 
     List<Room> new_list = roomList.stream().filter(o->o.getRoomNumber()==roomNumber).collect(Collectors.toList());
     if(new_list != null && new_list.size() > 0) {
       mv.addObject("roomName", params.get("roomName"));
       mv.addObject("roomNumber", params.get("roomNumber"));
+      mv.addObject("roomId", params.get("roomId"));
       mv.setViewName("mafiaChat");
     }else {
       mv.setViewName("room");
