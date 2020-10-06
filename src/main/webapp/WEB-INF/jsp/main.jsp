@@ -5,11 +5,8 @@
         <meta charset="UTF-8">
         <title>마피아 게임 메인</title>
         <script>
-            window.onload = function() {
-                var buttonDom = document.getElementsByClassName("button")[0];
-                buttonDom.onclick = function() {
-                    window.open("resources/joinUser.html","joinUser","width=500, height=300, resizable=no, scrollbars=no");
-                }
+            function openJoinUserWindow() {
+                window.open("resources/joinUser.html","joinUser","width=500, height=300, resizable=no, scrollbars=no");
             }
         </script>
     </head>

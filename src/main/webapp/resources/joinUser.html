@@ -22,12 +22,11 @@
                         } else if(str == "사용 가능한 아이디입니다.") {
                             idCheckDom.textContent = "checked";
                             pDom.style.color = "green";
-                            submitTrueCheck();
                         }
                     }
                 }
                 request.open('POST','/mafia/idRepeatCheck',true);
-                request.send('userid='+document.userid.value);
+                request.send('userid='+document.getElementById("userid").textContent+"&nickname="+document.getElementById("nickname").textContent);
             }
 
             document.getElementById("userid").onkeyup = function() {
@@ -52,16 +51,26 @@
                     if(color=="red" || !checkMsg) {
                         checkMsgDom.textContent = "비밀번호가 일치합니다.";
                         checkMsgDom.style.color = "green";
-                        submitTrueCheck();
                     }
                 }
             }
+        }
 
-            function submitTrueCheck() {
-                if(checkMsgDom.style.color == "green" && idCheckDom.textContent == "checked") {
-                    formDom.onsubmit = true;
+        function submitTrueCheck() {
+            checkMsgDom = document.getElementById("noticePasswordEqual");
+            idCheckDom = document.getElementById("idCheckHiddenTag");
+            console.log(checkMsgDom.style.color);
+            console.log(idCheckDom.textContent);
+            if(checkMsgDom.style.color != "green" || idCheckDom.textContent != "checked") {
+                if(idCheckDom.textContent != "checked"){
+                    alert("아이디 중복체크를 해주세요!");
                 }
+                else if(checkMsgDom.style.color != "green") {
+                    alert("비밀번호가 일치하지 않습니다!");
+                }
+                return false;
             }
+            else return true;
         }
     </script>
 </head>
@@ -69,15 +78,17 @@
     <div>
         <form id="joinForm" onsubmit="false">
             이름 : <input type="text" name="username" id="username" required>
+            <br>
             아이디 : <input type="text" name="userid" id="userid" required>
-            <button id="idRepeatCheckbtn" onclick="idRepeatCheckFun();">아이디 중복체크</button>
+            <button id="idRepeatCheckbtn" onclick="idRepeatCheckFun();" type="button">아이디 중복체크</button>
             <input type="hidden" id="idCheckHiddenTag" value="unchecked">
             <p id="noticeIdRepeated"></p>
             비밀번호 : <input type="password" name="password" id="password" required>
+            <br>
             비밀번호 확인 : <input type="password" name="passwordCheck" id="passwordCheck" required>
             <p id="noticePasswordEqual"></p>
-            전화번호 : <input type="tel" placeholder="000-0000-0000" name="phone" id="phone" required>
-            <input type="submit" value="회원가입">
+            닉네임 : <input type="text" name="nickname" id="nickname" required>
+            <input type="submit" onclick="submitTrueCheck();" value="회원가입">
             <input type="button" id="cancleBtn" value="취소" onclick="window.close();">
         </form>
     </div>
