@@ -4,7 +4,7 @@
 <html>
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Chating</title>
     <style>
         *{
@@ -170,8 +170,8 @@
         <table class="inputTable">
             <tr>
                 <th>사용자명</th>
-                <th><input type="text" name="userName" id="userName"></th>
-                <th><button onclick="chatName()" id="startBtn">이름 등록</button></th>
+                <td><input type="text" name="userName" id="userName"></td>
+                <td><button onclick="chatName()" id="startBtn">이름 등록</button></td>
             </tr>
         </table>
     </div>
@@ -179,10 +179,10 @@
         <table class="inputTable">
             <tr>
                 <th>마피아 챗</th>
-                <th><input type="checkbox" id="mafiaChat"></th>
-                <th>메시지</th>
-                <th><input id="chatting" class="chatting-input" placeholder="보내실 메시지를 입력하세요."></th>
-                <th><button onclick="send()" id="sendBtn">보내기</button></th>
+                <td><input type="checkbox" id="mafiaChat"></td>
+                <td>메시지</td>
+                <td><input id="chatting" class="chatting-input" placeholder="보내실 메시지를 입력하세요."></td>
+                <td><button onclick="send()" id="sendBtn">보내기</button></td>
             </tr>
         </table>
     </div>
