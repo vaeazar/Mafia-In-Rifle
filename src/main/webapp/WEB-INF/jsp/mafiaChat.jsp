@@ -28,39 +28,83 @@
             width: 500px;
             height: 500px;
             overflow: auto;
+            padding: 5px;
         }
-        .chating p{
-            color: #fff;
+        .chating .me{
+            color: #FFE400;
+            text-align: right;
+            word-break: break-all;
+        }
+        .chating .others{
+            color: #F6F6F6;
             text-align: left;
+            word-break: break-all;
         }
-        input{
+        .chating .me-mafia{
+            color: #d66fff;
+            text-align: right;
+            word-break: break-all;
+        }
+        .chating .others-mafia{
+            color: #ff0000;
+            text-align: left;
+            word-break: break-all;
+        }
+        .chatting-input {
             width: 330px;
             height: 25px;
         }
         #yourMsg{
             display: none;
+            width: 600px;
         }
     </style>
 </head>
 
 <script type="text/javascript">
-    var ws;
+    var socketVar;
 
     function wsOpen(){
-        ws = new WebSocket("ws://" + location.host + "/chating");
+        socketVar = new WebSocket("ws://" + location.host + "/chating");
         wsEvt();
     }
 
     function wsEvt() {
-        ws.onopen = function(data){
+        socketVar.onopen = function(data){
             //소켓이 열리면 초기화 세팅하기
         }
 
-        ws.onmessage = function(data) {
+        socketVar.onmessage = function(data) {
             var msg = data.data;
             if(msg != null && msg.trim() != ''){
-                $("#chating").append("<p>" + msg + "</p>");
-                $("#chating").scrollTop($("#chating")[0].scrollHeight);
+                var jsonTemp = JSON.parse(msg);
+                if(jsonTemp.type == "getId"){
+                    var sessionId = jsonTemp.sessionId != null ? jsonTemp.sessionId : "";
+                    if(sessionId != ''){
+                        $("#sessionId").val(sessionId);
+                    }
+                }else if(jsonTemp.type == "message"){
+                    if(jsonTemp.sessionId == $("#sessionId").val()){
+                        $("#chating").append("<p class='me'>" + jsonTemp.msg + "</p>");
+                        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+                    }else{
+                        $("#chating").append("<p class='others'>" + jsonTemp.userName + " :" + jsonTemp.msg + "</p>");
+                        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+                    }
+                }else if(jsonTemp.type == "mafia"){
+                    if ($('myJob').val() != 'mafia') {
+                        return false;
+                    }
+                    if(jsonTemp.sessionId == $("#sessionId").val()){
+                        $("#chating").append("<p class='me-mafia'>" + jsonTemp.msg + "</p>");
+                        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+                    }else{
+                        $("#chating").append("<p class='others-mafia'>" + jsonTemp.userName + " :" + jsonTemp.msg + "</p>");
+                        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+                    }
+                }else{
+                    console.warn("unknown type!")
+                }
             }
         }
 
@@ -84,15 +128,33 @@
     }
 
     function send() {
-        var uN = $("#userName").val();
-        var msg = $("#chatting").val();
-        ws.send(uN+" : "+msg);
+        if ($('#chatting').val() == "") return false;
+        var option;
+        if ($('#mafiaChat').checked()) {
+            option = {
+                type: "mafia",
+                sessionId : $("#sessionId").val(),
+                userName : $("#userName").val(),
+                msg : $("#chatting").val()
+            }
+        } else {
+            option = {
+                type: "message",
+                sessionId : $("#sessionId").val(),
+                userName : $("#userName").val(),
+                msg : $("#chatting").val()
+            }
+        }
+        socketVar.send(JSON.stringify(option));
         $('#chatting').val("");
     }
 </script>
 <body>
 <div id="container" class="container">
     <h1>채팅</h1>
+    <input type="hidden" id="sessionId" value="">
+    <input type="hidden" id="myJob" value="mafia">
+
     <div id="chating" class="chating">
     </div>
 
@@ -108,8 +170,10 @@
     <div id="yourMsg">
         <table class="inputTable">
             <tr>
+                <th>마피아 챗</th>
+                <th><input type="checkbox" id="mafiaChat"></th>
                 <th>메시지</th>
-                <th><input id="chatting" placeholder="보내실 메시지를 입력하세요."></th>
+                <th><input id="chatting" class="chatting-input" placeholder="보내실 메시지를 입력하세요."></th>
                 <th><button onclick="send()" id="sendBtn">보내기</button></th>
             </tr>
         </table>
