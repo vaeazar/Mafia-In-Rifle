@@ -21,11 +21,8 @@ public class LoginController {
 
   @PostMapping("/login.do")
   public ModelAndView login(String userid, String password) {
-    boolean result = loginService.login(userid, password);
-    String landingPage = "";
-    if(result) landingPage = "RoomList";
-    else {
-      landingPage = "loginResult";
-    }
+    ModelAndView mav = new ModelAndView("loginResult");
+    mav.addObject("result",loginService.login(userid,password));
+    return mav;
   }
 }
