@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -74,8 +75,14 @@ public class MainController {
    * @return
    */
   @RequestMapping("/moveChating")
-  public ModelAndView chating(@RequestParam HashMap<Object, Object> params) {
+  public ModelAndView chating(@RequestParam HashMap<Object, Object> params, HttpServletRequest request) {
     ModelAndView mv = new ModelAndView();
+    String url = request.getHeader("referer");
+    if (url == null) {
+      mv.addObject("alertKind", "wrongPath");
+      mv.setViewName("room");
+      return mv;
+    }
     int roomNumber = Integer.parseInt((String) params.get("roomNumber"));
     String roomId = params.get("roomId").toString();
 
