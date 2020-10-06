@@ -4,8 +4,7 @@ import com.example.mafia.service.UserService;
 import com.example.mafia.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
@@ -14,13 +13,46 @@ public class UserController {
   @Autowired
   UserService userService;
 
+  private String resultViewName = "userResult";
+
   @PostMapping("/insert")
   public ModelAndView insert(UserVO vo) {
-    ModelAndView mav = new ModelAndView("joinResult");
+    ModelAndView mav = new ModelAndView(resultViewName);
     mav.addObject("result",userService.insert(vo));
     return mav;
   }
 
   @PostMapping("/update")
-  public
+  public ModelAndView update(UserVO vo) {
+    ModelAndView mav = new ModelAndView(resultViewName);
+    mav.addObject("result",userService.update(vo));
+    return mav;
+  }
+
+  @GetMapping("/delete")
+  public ModelAndView delete(String userid) {
+    ModelAndView mav = new ModelAndView(resultViewName);
+    mav.addObject("result",userService.delete(userid));
+    return mav;
+  }
+
+  @GetMapping("/listAll")
+  public ModelAndView listAll() {
+    ModelAndView mav = new ModelAndView("userlistjsp");
+    mav.addObject("userlist",userService.listAll());
+    return mav;
+  }
+
+  @GetMapping("/selectOne")
+  public ModelAndView selectOne(String userid) {
+    ModelAndView mav = new ModelAndView("userinfo");
+    mav.addObject("uservo",userService.selectOne(userid));
+    return mav;
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/hasId",method = RequestMethod.POST,produces = "application/json; charset=UTF-8")
+  public String hasId(String userid) {
+    return Boolean.toString(userService.hasId(userid));
+  }
 }

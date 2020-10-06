@@ -17,9 +17,9 @@
                         var str = request.responseText;
                         var pDom = document.getElementById("noticeIdRepeated");
                         pDom.textContent = str;
-                        if(str == "이미 존재하는 아이디입니다.") {
+                        if(str == "true") {
                             pDom.style.color = "red";
-                        } else if(str == "사용 가능한 아이디입니다.") {
+                        } else if(str == "false") {
                             idCheckDom.textContent = "checked";
                             pDom.style.color = "green";
                         }
