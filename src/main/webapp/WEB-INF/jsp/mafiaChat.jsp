@@ -63,6 +63,14 @@
 
 <script type="text/javascript">
     var socketVar;
+    var jbRandom = Math.random();
+    document.addEventListener("DOMContentLoaded", function(){
+        if (Math.floor( jbRandom * 2 ) == 1) {
+            $('#myJob').val('mafia');
+        } else {
+            $('#myJob').val('citizen');
+        }
+    });
 
     function wsOpen(){
         socketVar = new WebSocket("ws://" + location.host + "/chating");
@@ -92,7 +100,7 @@
                         $("#chating").scrollTop($("#chating")[0].scrollHeight);
                     }
                 }else if(jsonTemp.type == "mafia"){
-                    if ($('myJob').val() != 'mafia') {
+                    if ($('#myJob').val() != 'mafia') {
                         return false;
                     }
                     if(jsonTemp.sessionId == $("#sessionId").val()){
@@ -130,7 +138,7 @@
     function send() {
         if ($('#chatting').val() == "") return false;
         var option;
-        if ($('#mafiaChat').checked()) {
+        if ($('#mafiaChat').prop("checked")) {
             option = {
                 type: "mafia",
                 sessionId : $("#sessionId").val(),
