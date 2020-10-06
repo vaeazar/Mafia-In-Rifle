@@ -2,6 +2,9 @@ package com.example.mafia.handler;
 
 import com.example.mafia.domain.MafiaMessage;
 import com.example.mafia.repository.MessageMongoDBRepository;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -24,14 +27,14 @@ public class SocketHandler extends TextWebSocketHandler {
     //메시지 발송
     try {
       String msg = message.getPayload();
-      String[] splitMSG = msg.split(" : ");
+      JSONObject obj = jsonToObjectParser(msg);
       MafiaMessage sendData = new MafiaMessage();
-      sendData.setUserId(splitMSG[0]);
-      sendData.setMessage(splitMSG[1]);
+      sendData.setUserId(obj.get("userName").toString());
+      sendData.setMessage(obj.get("msg").toString());
       messageMongoDBRepository.insert(sendData);
       for (String key : sessionMap.keySet()) {
         WebSocketSession wss = sessionMap.get(key);
-        wss.sendMessage(new TextMessage(msg));
+        wss.sendMessage(new TextMessage(obj.toJSONString()));
       }
     }catch(Exception e) {
       e.printStackTrace();
@@ -43,6 +46,10 @@ public class SocketHandler extends TextWebSocketHandler {
     //소켓 연결
     super.afterConnectionEstablished(session);
     sessionMap.put(session.getId(), session);
+    JSONObject obj = new JSONObject();
+    obj.put("type", "getId");
+    obj.put("sessionId", session.getId());
+    session.sendMessage(new TextMessage(obj.toJSONString()));
   }
 
   @Override
@@ -50,5 +57,16 @@ public class SocketHandler extends TextWebSocketHandler {
     //소켓 종료
     sessionMap.remove(session.getId());
     super.afterConnectionClosed(session, status);
+  }
+
+  private static JSONObject jsonToObjectParser(String jsonStr) {
+    JSONParser parser = new JSONParser();
+    JSONObject obj = null;
+    try {
+      obj = (JSONObject) parser.parse(jsonStr);
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    return obj;
   }
 }
