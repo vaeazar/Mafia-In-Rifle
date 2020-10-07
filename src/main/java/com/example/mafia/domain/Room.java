@@ -7,4 +7,5 @@ public class Room {
   int roomNumber;
   String roomName;
   String roomId;
+  int roomCount;
 }

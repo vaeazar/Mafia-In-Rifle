@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 function wsOpen(){
     //socketVar = new WebSocket("ws://" + location.host + "/chating");
-    socketVar = new WebSocket("ws://" + location.host + "/chating/"+$("#roomId").val());
+    socketVar = new WebSocket("ws://" + location.host + "/chating/"+$("#roomId").val()+"_"+$("#userName").val());
     wsEvt();
 }
 
