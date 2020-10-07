@@ -1,7 +1,7 @@
 package com.example.mafia.controller;
 
 import com.example.mafia.service.UserService;
-import com.example.mafia.vo.UserVO;
+import com.example.mafia.entity.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +16,14 @@ public class UserController {
   private String resultViewName = "userResult";
 
   @PostMapping("/insert")
-  public ModelAndView insert(UserVO vo) {
+  public ModelAndView insert(UserEntity vo) {
     ModelAndView mav = new ModelAndView(resultViewName);
     mav.addObject("result",userService.insert(vo));
     return mav;
   }
 
   @PostMapping("/update")
-  public ModelAndView update(UserVO vo) {
+  public ModelAndView update(UserEntity vo) {
     ModelAndView mav = new ModelAndView(resultViewName);
     mav.addObject("result",userService.update(vo));
     return mav;

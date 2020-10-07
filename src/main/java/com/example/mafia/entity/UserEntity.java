@@ -1,11 +1,11 @@
-package com.example.mafia.vo;
+package com.example.mafia.entity;
 
 import lombok.Data;
 import lombok.ToString;
 
 @Data
 @ToString
-public class UserVO {
+public class UserEntity {
   private String userid;
   private String username;
   private String password;

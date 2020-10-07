@@ -6,7 +6,7 @@
         <title>마피아 게임 메인</title>
         <script>
             function openJoinUserWindow() {
-                window.open("resources/joinUser.html","joinUser","width=500, height=300, resizable=no, scrollbars=no");
+                window.open("/resources/joinUser.html","joinUser","width=500, height=300, resizable=no, scrollbars=no");
             }
         </script>
     </head>

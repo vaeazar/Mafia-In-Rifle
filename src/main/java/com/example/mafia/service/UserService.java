@@ -1,10 +1,7 @@
 package com.example.mafia.service;
 
-import com.example.mafia.repository.UserDAO;
-import com.example.mafia.vo.UserVO;
-import com.google.gson.Gson;
-import com.mongodb.client.MongoCursor;
-import org.bson.Document;
+import com.example.mafia.entity.UserEntity;
+import com.example.mafia.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +13,14 @@ import java.util.List;
 @Service
 public class UserService {
   @Autowired
-  UserDAO userDAO;
+  UserRepository userRepository;
 
-  Logger log = LoggerFactory.getLogger(UserDAO.class);
+  Logger log = LoggerFactory.getLogger(UserService.class);
 
-  public boolean insert(UserVO vo) {
+  public boolean insert(UserEntity entity) {
    boolean result = false;
     try {
-      userDAO.insert(vo);
+      userRepository.insert(entity);
       result = true;
     } catch (Exception e) {
       log.info(e.getMessage());
@@ -31,10 +28,10 @@ public class UserService {
     return result;
   }
 
-  public boolean update(UserVO vo) {
+  public boolean update(UserEntity entity) {
     boolean result = false;
     try {
-      userDAO.update(vo);
+      userRepository.save(entity);
       result = true;
     } catch (Exception e) {
       log.info(e.getMessage());
@@ -45,7 +42,7 @@ public class UserService {
   public boolean delete(String userid) {
     boolean result = false;
     try {
-      userDAO.delete(userid);
+      userRepository.deleteDistinctByUserid(userid);
       result = true;
     } catch (Exception e) {
       log.info(e.getMessage());
@@ -53,42 +50,30 @@ public class UserService {
     return result;
   }
 
-  public List<UserVO> listAll() {
-    List<UserVO> list = new ArrayList<>();
+  public List<UserEntity> listAll() {
+    List<UserEntity> list = new ArrayList<>();
     try {
-      MongoCursor<Document> cursor = userDAO.listAll();
-      while(cursor.hasNext()) {
-        String json = cursor.next().toJson();
-        Gson gson = new Gson();
-        UserVO vo = gson.fromJson(json,UserVO.class);
-        list.add(vo);
-      }
+      list = userRepository.findAll();
     } catch (Exception e) {
       log.info(e.getMessage());
     }
     return list;
   }
 
-  public UserVO selectOne(String userid) {
-    UserVO vo = new UserVO();
+  public UserEntity selectOne(String userid) {
+    UserEntity entity = new UserEntity();
     try {
-      Document document = userDAO.selectOne(userid);
-      String json = document.toJson();
-      Gson gson = new Gson();
-      vo = gson.fromJson(json,UserVO.class);
+      entity = userRepository.findDistinctByUserid(userid);
     } catch (Exception e) {
       log.info(e.getMessage());
     }
-    return vo;
+    return entity;
   }
 
   public boolean hasId(String userid) {
     boolean result = false;
     try {
-      int cnt = (int)userDAO.countByUserid(userid);
-      if(cnt == 1) {
-        result = true;
-      }
+      result = userRepository.existsByUserid(userid);
     } catch (Exception e) {
       log.info(e.getMessage());
     }
