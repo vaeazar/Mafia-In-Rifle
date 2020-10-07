@@ -15,11 +15,10 @@ public class UserController {
 
   private String resultViewName = "userResult";
 
+  @ResponseBody
   @PostMapping("/insert")
-  public ModelAndView insert(UserEntity entity) {
-    ModelAndView mav = new ModelAndView(resultViewName);
-    mav.addObject("result",userService.insert(entity));
-    return mav;
+  public String insert(UserEntity entity) {
+    return Boolean.toString(userService.insert(entity));
   }
 
   @PostMapping("/update")
@@ -53,7 +52,6 @@ public class UserController {
   @ResponseBody
   @RequestMapping(value = "/hasId",method = RequestMethod.POST,produces = "application/json; charset=UTF-8")
   public String hasId(String userid) {
-    System.out.println("userid : "+userid);
     return Boolean.toString(userService.hasId(userid));
   }
 

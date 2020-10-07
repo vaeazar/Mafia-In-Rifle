@@ -33,6 +33,8 @@
                     }
                 }
                 request.open('POST','/mafia/user/hasId',true);
+                request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+                console.log("userid dom : "+document.getElementById("userid").textContent);
                 request.send('userid='+document.getElementById("userid").textContent);
             }
 
@@ -102,7 +104,33 @@
                 }
                 return false;
             }
-            else return true;
+            else {
+                submitSuccessCheck();
+            }
+        }
+
+        function submitSuccessCheck() {
+            var request = new XMLHttpRequest();
+            var userid = document.getElementById("userid");
+            var password = document.getElementById("password");
+            var username = document.getElementById("username");
+            var nickname = document.getElementById("nickname");
+            request.onload = function() {
+                if(request.status == 200) {
+                    var str = request.responseText;
+                    console.log("str : "+str);
+                    if(str == "true") {
+                        alert("회원가입에 성공하였습니다.");
+                        if(opener != null) {
+                            self.close();
+                        }
+                    } else {
+                        alert("회원가입에 실패하였습니다.");
+                    }
+                }
+            }
+            request.open('POST',"/mafia/user/insert",true);
+            request.send("userid="+userid+"&username="+username+"&password="+password+"&nickname="+nickname);
         }
     </script>
 </head>
