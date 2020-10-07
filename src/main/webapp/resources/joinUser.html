@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <title>Join to Mafia</title>
     <script>
+
+        var hasIdChecked = false;
+        var hasNickChecked = false;
+        var formDom;
+        var checkMsgDom;
+
         window.onload = function() {
 
-            var formDom = document.getElementById("joinForm");
-            var idCheckDom = document.getElementById("idCheckHiddenTag");
-            var checkMsgDom = document.getElementById("noticePasswordEqual");
+            formDom = document.getElementById("joinForm");
+            checkMsgDom = document.getElementById("noticePasswordEqual");
 
             document.getElementById("idRepeatCheckbtn").onclick = function() {
                 var request = new XMLHttpRequest();
@@ -18,52 +23,79 @@
                         var pDom = document.getElementById("noticeIdRepeated");
                         pDom.textContent = str;
                         if(str == "true") {
+                            pDom.textContent = "이미 사용 중인 아이디입니다!";
                             pDom.style.color = "red";
                         } else if(str == "false") {
-                            idCheckDom.textContent = "checked";
+                            hasIdChecked = true;
+                            pDom.textContent = "사용가능한 아이디입니다.";
                             pDom.style.color = "green";
                         }
                     }
                 }
-                request.open('POST','/mafia/idRepeatCheck',true);
-                request.send('userid='+document.getElementById("userid").textContent+"&nickname="+document.getElementById("nickname").textContent);
+                request.open('POST','/mafia/user/hasId',true);
+                request.send('userid='+document.getElementById("userid").textContent);
+            }
+
+            document.getElementById("nickRepeatCheckbtn").onclick = function() {
+                var request = new XMLHttpRequest();
+                request.onload = function() {
+                    if(request.status == 200) {
+                        var str = request.responseText;
+                        var pDom = document.getElementById("noticeNickRepeated");
+                        pDom.textContent = str;
+                        if(str == "true") {
+                            pDom.textContent = "이미 사용 중인 닉네임입니다.";
+                            pDom.style.color = "red";
+                        } else if(str == "false") {
+                            hasNickChecked = true;
+                            pDom.textContent = "사용가능한 닉네임입니다.";
+                            pDom.style.color = "green";
+                        }
+                    }
+                }
+                request.open('POST','/mafia/user/hasNick',true);
+                request.send('nickname='+document.getElementById("nickname").textContent);
             }
 
             document.getElementById("userid").onkeyup = function() {
-                idCheckDom.textContent = "unchecked";
+                hasIdChecked = false;
             }
 
-            document.getElementById("passwordCheck").onkeyup = function() {
-                var pwDom1 = document.getElementById("password");
-                var pwDom2 = document.getElementById("passwordCheck");
-                var color = checkMsgDom.style.color;
-                var checkMsg = checkMsgDom.value;
+            document.getElementById("nickname").onkeyup = function() {
+                hasNickChecked = false;
+            }
+        }
 
-                var pw1 = pwDom1.value;
-                var pw2 = pwDom2.value;
+        function passwordEqualCheck() {
+            var pwDom1 = document.getElementById("password");
+            var pwDom2 = document.getElementById("passwordCheck");
+            var color = checkMsgDom.style.color;
+            var checkMsg = checkMsgDom.value;
 
-                if(pw1 != pw2) {
-                    if(color=="green" || !checkMsg) {
-                        checkMsgDom.textContent = "비밀번호가 일치하지 않습니다!";
-                        checkMsgDom.style.color = "red";
-                    }
-                } else if(pw1 == pw2) {
-                    if(color=="red" || !checkMsg) {
-                        checkMsgDom.textContent = "비밀번호가 일치합니다.";
-                        checkMsgDom.style.color = "green";
-                    }
+            var pw1 = pwDom1.value;
+            var pw2 = pwDom2.value;
+
+            if(pw1 != pw2) {
+                if(color=="green" || !checkMsg) {
+                    checkMsgDom.textContent = "비밀번호가 일치하지 않습니다!";
+                    checkMsgDom.style.color = "red";
+                }
+            } else if(pw1 == pw2) {
+                if(color=="red" || !checkMsg) {
+                    checkMsgDom.textContent = "비밀번호가 일치합니다.";
+                    checkMsgDom.style.color = "green";
                 }
             }
         }
 
         function submitTrueCheck() {
-            checkMsgDom = document.getElementById("noticePasswordEqual");
-            idCheckDom = document.getElementById("idCheckHiddenTag");
-            console.log(checkMsgDom.style.color);
-            console.log(idCheckDom.textContent);
-            if(checkMsgDom.style.color != "green" || idCheckDom.textContent != "checked") {
-                if(idCheckDom.textContent != "checked"){
+            var checkMsgDom = document.getElementById("noticePasswordEqual");
+            if(checkMsgDom.style.color != "green" || hasIdChecked == false || hasNickChecked == false) {
+                if(hasIdChecked == false){
                     alert("아이디 중복체크를 해주세요!");
+                }
+                else if(hasNickChecked == false){
+                    alert("닉네임 중복체크를 해주세요!");
                 }
                 else if(checkMsgDom.style.color != "green") {
                     alert("비밀번호가 일치하지 않습니다!");
@@ -76,18 +108,21 @@
 </head>
 <body>
     <div>
-        <form id="joinForm" onsubmit="false">
+        <form id="joinForm" action="/mafia/user/insert" method="post">
             이름 : <input type="text" name="username" id="username" required>
             <br>
             아이디 : <input type="text" name="userid" id="userid" required>
-            <button id="idRepeatCheckbtn" onclick="idRepeatCheckFun();" type="button">아이디 중복체크</button>
-            <input type="hidden" id="idCheckHiddenTag" value="unchecked">
+            <button id="idRepeatCheckbtn" type="button">아이디 중복체크</button>
             <p id="noticeIdRepeated"></p>
-            비밀번호 : <input type="password" name="password" id="password" required>
+            비밀번호 : <input type="password" name="password" id="password" onkeyup="passwordEqualCheck();" required>
             <br>
-            비밀번호 확인 : <input type="password" name="passwordCheck" id="passwordCheck" required>
+            비밀번호 확인 : <input type="password" name="passwordCheck" id="passwordCheck" onkeyup="passwordEqualCheck();" required>
             <p id="noticePasswordEqual"></p>
             닉네임 : <input type="text" name="nickname" id="nickname" required>
+            <br>
+            <button id="nickRepeatCheckbtn" type="button">닉네임 중복체크</button>
+            <p id="noticeNickRepeated"></p>
+            <br>
             <input type="submit" onclick="submitTrueCheck();" value="회원가입">
             <input type="button" id="cancleBtn" value="취소" onclick="window.close();">
         </form>

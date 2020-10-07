@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface UserRepository extends MongoRepository<UserEntity,String> {
   public boolean existsByUserid(String userid);
+  public boolean existsByNickname(String nickname);
   public UserEntity findDistinctByUserid(String userid);
   public int deleteDistinctByUserid(String userid);
 }

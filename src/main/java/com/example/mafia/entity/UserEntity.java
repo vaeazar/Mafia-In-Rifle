@@ -2,9 +2,11 @@ package com.example.mafia.entity;
 
 import lombok.Data;
 import lombok.ToString;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @ToString
+@Document(collection = "UserInfo")
 public class UserEntity {
   private String userid;
   private String username;

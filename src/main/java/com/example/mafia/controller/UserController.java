@@ -16,16 +16,16 @@ public class UserController {
   private String resultViewName = "userResult";
 
   @PostMapping("/insert")
-  public ModelAndView insert(UserEntity vo) {
+  public ModelAndView insert(UserEntity entity) {
     ModelAndView mav = new ModelAndView(resultViewName);
-    mav.addObject("result",userService.insert(vo));
+    mav.addObject("result",userService.insert(entity));
     return mav;
   }
 
   @PostMapping("/update")
-  public ModelAndView update(UserEntity vo) {
+  public ModelAndView update(UserEntity entity) {
     ModelAndView mav = new ModelAndView(resultViewName);
-    mav.addObject("result",userService.update(vo));
+    mav.addObject("result",userService.update(entity));
     return mav;
   }
 
@@ -46,13 +46,20 @@ public class UserController {
   @GetMapping("/selectOne")
   public ModelAndView selectOne(String userid) {
     ModelAndView mav = new ModelAndView("userinfo");
-    mav.addObject("uservo",userService.selectOne(userid));
+    mav.addObject("userentity",userService.selectOne(userid));
     return mav;
   }
 
   @ResponseBody
   @RequestMapping(value = "/hasId",method = RequestMethod.POST,produces = "application/json; charset=UTF-8")
   public String hasId(String userid) {
+    System.out.println("userid : "+userid);
     return Boolean.toString(userService.hasId(userid));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/hasNick",method = RequestMethod.POST,produces = "application/json; charset=UTF-8")
+  public String hasNick(String nickname) {
+    return Boolean.toString(userService.hasNickname(nickname));
   }
 }

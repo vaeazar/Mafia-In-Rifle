@@ -80,4 +80,14 @@ public class UserService {
     return result;
   }
 
+  public boolean hasNickname(String nickname) {
+    boolean result = false;
+    try {
+      result = userRepository.existsByNickname(nickname);
+    } catch (Exception e) {
+      log.info(e.getMessage());
+    }
+    return result;
+  }
+
 }
