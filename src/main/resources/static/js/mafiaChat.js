@@ -28,7 +28,25 @@ function wsEvt() {
                 if(sessionId != ''){
                     $("#sessionId").val(sessionId);
                 }
-            }else if(jsonTemp.type == "message"){
+                if(jsonTemp.isAdmin){
+                    $("#chatRoomHeader").append("<button onclick='start()' id='startBtn' class='startBtn'>시작</button>");
+                }
+            } else if(jsonTemp.type == "adminLeft"){
+                if(jsonTemp.isAdmin){
+                    $("#chatRoomHeader").append("<button onclick='start()' id='startBtn' class='startBtn'>시작</button>");
+                }
+            } else if(jsonTemp.type == "fail"){
+                if (jsonTemp.failReason == 'nameExist') {
+                    $("#yourMsg").hide();
+                    $("#yourName").show();
+                    alert(jsonTemp.failMessage);
+                    $("#userName").focus();
+                } else if (jsonTemp.failReason == 'fullBang') {
+                    $("#yourMsg").hide();
+                    alert(jsonTemp.failMessage);
+                    location.href("/room");
+                }
+            } else if(jsonTemp.type == "message"){
                 if(jsonTemp.sessionId == $("#sessionId").val()){
                     $("#chating").append("<p class='me'>" + jsonTemp.msg + "</p>");
                     $("#chating").scrollTop($("#chating")[0].scrollHeight);
@@ -36,18 +54,18 @@ function wsEvt() {
                     $("#chating").append("<p class='others'>" + jsonTemp.userName + " :" + jsonTemp.msg + "</p>");
                     $("#chating").scrollTop($("#chating")[0].scrollHeight);
                 }
-            }else if(jsonTemp.type == "mafia"){
+            } else if(jsonTemp.type == "mafia"){
                 if ($('#myJob').val() != 'mafia') {
                     return false;
                 }
-                if(jsonTemp.sessionId == $("#sessionId").val()){
+                if (jsonTemp.sessionId == $("#sessionId").val()){
                     $("#chating").append("<p class='me-mafia'>" + jsonTemp.msg + "</p>");
                     $("#chating").scrollTop($("#chating")[0].scrollHeight);
-                }else{
+                } else {
                     $("#chating").append("<p class='others-mafia'>" + jsonTemp.userName + " :" + jsonTemp.msg + "</p>");
                     $("#chating").scrollTop($("#chating")[0].scrollHeight);
                 }
-            }else{
+            } else {
                 console.warn("unknown type!")
             }
         }
