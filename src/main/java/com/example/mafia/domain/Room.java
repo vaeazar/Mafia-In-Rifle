@@ -8,4 +8,5 @@ public class Room {
   String roomName;
   String roomId;
   int roomCount;
+  Boolean roomStatus;
 }
