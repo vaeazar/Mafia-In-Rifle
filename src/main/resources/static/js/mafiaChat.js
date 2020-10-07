@@ -29,7 +29,7 @@ function wsEvt() {
                     $("#sessionId").val(sessionId);
                 }
                 if(jsonTemp.isAdmin){
-                    $("#chatRoomHeader").append("<button onclick='start()' id='startBtn' class='startBtn'>시작</button>");
+                    $("#chatRoomHeader").append("<button onclick='startGame()' id='startBtn' class='startBtn'>시작</button>");
                 }
             } else if(jsonTemp.type == "adminLeft"){
                 if(jsonTemp.isAdmin){
@@ -39,12 +39,20 @@ function wsEvt() {
                 if (jsonTemp.failReason == 'nameExist') {
                     $("#yourMsg").hide();
                     $("#yourName").show();
-                    alert(jsonTemp.failMessage);
+                    Swal.fire({
+                        icon: 'error',
+                        text: jsonTemp.failMessage
+                    })
                     $("#userName").focus();
                 } else if (jsonTemp.failReason == 'fullBang') {
                     $("#yourMsg").hide();
-                    alert(jsonTemp.failMessage);
-                    location.href("/room");
+                    alert();
+                    Swal.fire({
+                        icon: 'error',
+                        text: jsonTemp.failMessage,
+                        footer: '<a href="/room">방 목록으로 이동</a>'
+                    });
+                    //location.href("/room");
                 }
             } else if(jsonTemp.type == "message"){
                 if(jsonTemp.sessionId == $("#sessionId").val()){
@@ -116,6 +124,13 @@ function send() {
     $('#chatting').val("");
 }
 
+function startGame(){
+    var roomId = {	roomId : $('#roomId').val()	};
+    commonAjax('/setRoomStart', roomId, 'post', function(){
+        $("#startBtn").remove();
+    });
+}
+
 // 타이머 function
 
 // Set the date we're counting down to
@@ -149,5 +164,21 @@ function timer () {
         }
     }, 1000);
 
+}
+
+function commonAjax(url, parameter, type, calbak, contentType){
+    $.ajax({
+        url: url,
+        data: parameter,
+        type: type,
+        contentType : contentType!=null?contentType:'application/x-www-form-urlencoded; charset=UTF-8',
+        success: function (res) {
+            calbak(res);
+        },
+        error : function(err){
+            console.log('error');
+            calbak(err);
+        }
+    });
 }
 
