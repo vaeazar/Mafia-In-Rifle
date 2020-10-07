@@ -7,10 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpSession;
+
 @Service
 public class LoginService {
   @Autowired
   LoginRepository loginRepository;
+
+  @Autowired
+  HttpSession session;
 
   Logger log = LoggerFactory.getLogger(LoginService.class);
 
@@ -20,6 +25,7 @@ public class LoginService {
       UserEntity entity = loginRepository.findDistinctByUserid(userid);
       if(entity.getPassword().equals(password)) {
         result = true;
+        session.setAttribute("UserEntity",entity);
       }
     } catch (Exception e) {
       log.info(e.getMessage());
