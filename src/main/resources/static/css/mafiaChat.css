@@ -73,3 +73,7 @@
     color: pink;
     font-size: large;
 }
+
+.startBtn {
+    vertical-align: middle;
+}
