@@ -73,19 +73,7 @@ public class UserService {
   public boolean hasId(String userid) {
     boolean result = false;
     try {
-      int cnt = (int)userRepository.countByUserid(userid);
-      if(cnt == 1) result = true;
-    } catch (Exception e) {
-      log.info(e.getMessage());
-    }
-    return result;
-  }
-
-  public boolean hasNickname(String nickname) {
-    boolean result = false;
-    try {
-      int cnt = (int)userRepository.countByNickname(nickname);
-      if(cnt == 1) result = true;
+      result = userRepository.existsByUserid(userid);
     } catch (Exception e) {
       log.info(e.getMessage());
     }

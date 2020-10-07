@@ -17,7 +17,13 @@ public class UserController {
 
   @ResponseBody
   @PostMapping("/insert")
-  public String insert(UserEntity entity) {
+  public String insert(@RequestParam("userid")String userid
+                        ,@RequestParam("username")String username
+                        ,@RequestParam("password")String password) {
+    UserEntity entity = new UserEntity();
+    entity.setUsername(username);
+    entity.setUserid(userid);
+    entity.setPassword(password);
     return Boolean.toString(userService.insert(entity));
   }
 
@@ -53,11 +59,5 @@ public class UserController {
   @RequestMapping(value = "/hasId",method = RequestMethod.POST,produces = "application/json; charset=UTF-8")
   public String hasId(String userid) {
     return Boolean.toString(userService.hasId(userid));
-  }
-
-  @ResponseBody
-  @RequestMapping(value = "/hasNick",method = RequestMethod.POST,produces = "application/json; charset=UTF-8")
-  public String hasNick(String nickname) {
-    return Boolean.toString(userService.hasNickname(nickname));
   }
 }

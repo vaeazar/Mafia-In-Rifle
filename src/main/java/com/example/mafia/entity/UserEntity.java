@@ -11,7 +11,6 @@ public class UserEntity {
   private String userid;
   private String username;
   private String password;
-  private String nickname;
   private int citizenWin;
   private int citizenLose;
   private int mafiaWin;
