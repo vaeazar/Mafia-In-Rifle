@@ -1,7 +1,7 @@
 package com.example.mafia.controller;
 
-import com.example.mafia.service.UserService;
 import com.example.mafia.entity.UserEntity;
+import com.example.mafia.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
