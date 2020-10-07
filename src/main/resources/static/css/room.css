@@ -35,11 +35,15 @@
     color: #FFBB00;
 }
 .roomList .num{
-    width: 75px;
+    width: 50px;
     text-align: center;
 }
 .roomList .room{
-    width: 350px;
+    width: 295px;
+}
+.roomList .count{
+    width: 80px;
+    text-align: center;
 }
 .roomList .go{
     width: 71px;
