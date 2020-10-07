@@ -5,13 +5,15 @@
         <meta charset="UTF-8">
         <title>로그인 결과창</title>
     </head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <script src="https://cdn.jsdelivr.net/npm/promise-polyfill"></script>
     <body>
         <script>
             var result = "${result}";
             if(result == "true"){
                 document.location.href = "/mafia/";
             } else {
-                alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요!");
+                Swal.fire("로그인 실패하였습니다. 아이디와 비밀번호를 확인해주세요!");
                 document.location.href = "${header.referer}";
             }
         </script>
