@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class SocketHandler extends TextWebSocketHandler {
@@ -50,6 +51,10 @@ public class SocketHandler extends TextWebSocketHandler {
             continue;
           }
 
+          if(k.equals("adminSession") || k.equals("memberList") || k.equals("memberCount")) { //다만 방번호일 경우에는 건너뛴다.
+            continue;
+          }
+
           WebSocketSession wss = (WebSocketSession) temp.get(k);
           if(wss != null) {
             wss.sendMessage(new TextMessage(obj.toJSONString()));
@@ -79,12 +84,13 @@ public class SocketHandler extends TextWebSocketHandler {
     boolean flag = false;
     String url = session.getUri().toString();
     System.out.println(url);
-    String roomId = url.split("/chating/")[1];
+    String roomId = url.split("/chating/")[1].split("_")[0];
+    String userName = url.split("/chating/")[1].split("_")[1];
     int idx = rls.size(); //방의 사이즈를 조사한다.
     if(rls.size() > 0) {
       for(int i=0; i<rls.size(); i++) {
-        String rN = (String) rls.get(i).get("roomId");
-        if(rN.equals(roomId)) {
+        String getRoomId = (String) rls.get(i).get("roomId");
+        if(getRoomId.equals(roomId)) {
           flag = true;
           idx = i;
           break;
@@ -93,12 +99,40 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     if(flag) { //존재하는 방이라면 세션만 추가한다.
+      JSONObject failObj = new JSONObject();
       HashMap<String, Object> map = rls.get(idx);
+      List<String> memberList = (List<String>) map.get("memberList");
+      List<String> result = memberList
+        .stream()
+        .filter(x -> x.contains(userName))
+        .collect(Collectors.toList());
+      int memberCount = (int) map.get("memberCount");
+      if (memberCount > 14) {
+        failObj.put("type", "fail");
+        failObj.put("failReason", "최대 인원이라 참가가 불가능합니다.");
+        session.sendMessage(new TextMessage(failObj.toJSONString()));
+        return;
+      } else if (!result.isEmpty()) {
+        failObj.put("type", "fail");
+        failObj.put("failReason", "중복 된 이름이 있습니다.");
+        session.sendMessage(new TextMessage(failObj.toJSONString()));
+        return;
+      } else if (memberCount == 0) {
+        map.put("adminSession",session.getId());
+      }
+      memberList.add(userName);
       map.put(session.getId(), session);
+      map.put("memberList", memberList);
+      map.put("memberCount", ++memberCount);
     }else { //최초 생성하는 방이라면 방번호와 세션을 추가한다.
       HashMap<String, Object> map = new HashMap<String, Object>();
+      List<String> memberList = new ArrayList<>();
+      memberList.add(userName);
       map.put("roomId", roomId);
       map.put(session.getId(), session);
+      map.put("memberList", memberList);
+      map.put("adminSession", session.getId());
+      map.put("memberCount", 1);
       rls.add(map);
     }
 
@@ -116,10 +150,29 @@ public class SocketHandler extends TextWebSocketHandler {
     //소켓 종료
     if(rls.size() > 0) { //소켓이 종료되면 해당 세션값들을 찾아서 지운다.
       for(int i=0; i<rls.size(); i++) {
+        if (rls.get(i).get(session.getId()) != null) {
+          System.out.println("세션 제거");
+          HashMap<String, Object> map = rls.get(i);
+          int memberCount = (int) map.get("memberCount");
+          map.put("memberCount", --memberCount);
+        }
+        //System.out.println("rls.get(i).get(session.getId()) = " + rls.get(i).get(session.getId()));
         rls.get(i).remove(session.getId());
       }
     }
     super.afterConnectionClosed(session, status);
+  }
+
+  public int getRoomCount(String roomId) {
+    if(rls.size() > 0) {
+      for(int i=0; i<rls.size(); i++) {
+        String getRoomId = (String) rls.get(i).get("roomId");
+        if(getRoomId.equals(roomId)) {
+          return (int) rls.get(i).get("memberCount");
+        }
+      }
+    }
+    return 0;
   }
 
   private static JSONObject jsonToObjectParser(String jsonStr) {
