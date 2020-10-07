@@ -12,7 +12,7 @@
     </head>
     <body>
         <div id="main">
-            <form action="/mafia/loginUser" method="post">
+            <form action="/mafia/login/login.do" method="post">
                 아이디 : <input type="text" name="userid">
                 <br>
                 비밀번호 : <input type="password" name="password">
