@@ -58,6 +58,7 @@ public class MainController {
       room.setRoomNumber(++roomNumber);
       room.setRoomName(roomName);
       room.setRoomCount(0);
+      room.setRoomStatus(true);
       String uniqueValue = UUID.randomUUID().toString().substring(0,8);
       uniqueValue += System.currentTimeMillis();
       room.setRoomId(uniqueValue);
@@ -79,6 +80,22 @@ public class MainController {
       roomList.set(i,room);
     }
     return roomList;
+  }
+
+  /**
+   * 방 시작
+   * @param params
+   * @return
+   */
+  @RequestMapping("/setRoomStart")
+  public @ResponseBody void setRoomStart(@RequestParam HashMap<Object, Object> params){
+    for (int i = 0; i < roomList.size(); i++) {
+      Room room = roomList.get(i);
+      if (room.getRoomId().equals(params.get("roomId"))) {
+        room.setRoomStatus(false);
+        roomList.set(i,room);
+      }
+    }
   }
 
   /**

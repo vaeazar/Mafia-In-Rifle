@@ -13,7 +13,12 @@
 <div class="container">
     <h1>Mafia In Rifle</h1>
     <div id="roomContainer" class="roomContainer">
-        <table id="roomList" class="roomList"></table>
+        <table class="roomList">
+            <thead>
+            <tr><th class='num'>순서</th><th class='room'>방 이름</th><th class='count'>인원</th><th class='go'></th></tr>
+            </thead>
+            <tbody id="roomList"></tbody>
+        </table>
     </div>
     <div>
         <table class="inputTable">
