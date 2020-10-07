@@ -58,6 +58,9 @@ button{
     padding: 3px;
     margin: 3px;
 }
+.fullBang {
+    background-color: #6c6c6c;
+}
 .inputTable th{
     padding: 5px;
 }

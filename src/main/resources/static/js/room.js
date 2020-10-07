@@ -37,9 +37,13 @@ function createChatingRoom(res){
             tag += "<tr>"+
                 "<td class='num'>"+(idx+1)+"</td>"+
                 "<td class='room'>"+ newRoomName +"</td>"+
-                "<td class='count'>"+ newroomCount +"/15</td>"+
-                "<td class='go'><button type='button' onclick='goRoom(\""+newRoomNumber+"\", \""+newRoomName+"\", \""+newRoomId+"\")'>참여</button></td>" +
-                "</tr>";
+                "<td class='count'>"+ newroomCount +"/15</td>"
+                if (newroomCount > 14) {
+                    tag += "<td class='go'><button type='button' class='fullBang'>참여</button></td>"
+                } else {
+                    tag += "<td class='go'><button type='button' onclick='goRoom(\""+newRoomNumber+"\", \""+newRoomName+"\", \""+newRoomId+"\")'>참여</button></td>"
+                }
+                tag += "</tr>";
         });
         $("#roomList").empty().append(tag);
     }
