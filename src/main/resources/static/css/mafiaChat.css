@@ -14,6 +14,9 @@
     border-left: 3px solid #FFBB00;
     margin-bottom: 20px;
 }
+.startBtn {
+    vertical-align: middle;
+}
 .chating{
     background-color: #000;
     width: 500px;
