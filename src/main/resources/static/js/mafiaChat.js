@@ -33,7 +33,7 @@ function wsEvt() {
                 }
             } else if(jsonTemp.type == "adminLeft"){
                 if(jsonTemp.isAdmin){
-                    $("#chatRoomHeader").append("<button onclick='start()' id='startBtn' class='startBtn'>시작</button>");
+                    $("#chatRoomHeader").append("<button onclick='startGame()' id='startBtn' class='startBtn'>시작</button>");
                 }
             } else if(jsonTemp.type == "fail"){
                 if (jsonTemp.failReason == 'nameExist') {
