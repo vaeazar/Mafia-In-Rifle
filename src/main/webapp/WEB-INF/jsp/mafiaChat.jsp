@@ -11,7 +11,7 @@
 </head>
 <body>
 <div id="container" class="container">
-    <h1>${roomName}</h1>
+    <h1 id="chatRoomHeader">${roomName}</h1>
     <p id="announce"></p>
     <input type="hidden" id="sessionId" value="">
     <input type="hidden" id="roomNumber" value="${roomNumber}">

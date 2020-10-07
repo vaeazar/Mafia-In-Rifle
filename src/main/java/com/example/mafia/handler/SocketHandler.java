@@ -13,9 +13,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -35,7 +33,7 @@ public class SocketHandler extends TextWebSocketHandler {
       JSONObject obj = jsonToObjectParser(msg);
 
       String jsonGetRoomId = (String) obj.get("roomId");
-      HashMap<String, Object> temp = new HashMap<String, Object>();
+      HashMap<String, Object> temp = new HashMap<>();
       if(rls.size() > 0) {
         for(int i=0; i<rls.size(); i++) {
           String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
@@ -82,6 +80,7 @@ public class SocketHandler extends TextWebSocketHandler {
     super.afterConnectionEstablished(session);
     //sessionMap.put(session.getId(), session);
     boolean flag = false;
+    JSONObject obj = new JSONObject();
     String url = session.getUri().toString();
     System.out.println(url);
     String roomId = url.split("/chating/")[1].split("_")[0];
@@ -101,43 +100,42 @@ public class SocketHandler extends TextWebSocketHandler {
     if(flag) { //존재하는 방이라면 세션만 추가한다.
       JSONObject failObj = new JSONObject();
       HashMap<String, Object> map = rls.get(idx);
-      List<String> memberList = (List<String>) map.get("memberList");
-      List<String> result = memberList
-        .stream()
-        .filter(x -> x.contains(userName))
-        .collect(Collectors.toList());
+      HashMap<String, String> memberList = (HashMap<String, String>) rls.get(idx).get("memberList");
       int memberCount = (int) map.get("memberCount");
       if (memberCount > 14) {
         failObj.put("type", "fail");
-        failObj.put("failReason", "최대 인원이라 참가가 불가능합니다.");
+        failObj.put("failReason", "fullBang");
+        failObj.put("failMessage", "최대 인원이라 참가가 불가능합니다.");
         session.sendMessage(new TextMessage(failObj.toJSONString()));
         return;
-      } else if (!result.isEmpty()) {
+      } else if (memberList.size() > 0 && memberList.get(userName) != null) {
         failObj.put("type", "fail");
-        failObj.put("failReason", "중복 된 이름이 있습니다.");
+        failObj.put("failReason", "nameExist");
+        failObj.put("failMessage", "중복 된 이름이 있습니다.");
         session.sendMessage(new TextMessage(failObj.toJSONString()));
         return;
       } else if (memberCount == 0) {
         map.put("adminSession",session.getId());
+        obj.put("isAdmin", true);
       }
-      memberList.add(userName);
+      memberList.put(userName,session.getId());
       map.put(session.getId(), session);
       map.put("memberList", memberList);
       map.put("memberCount", ++memberCount);
     }else { //최초 생성하는 방이라면 방번호와 세션을 추가한다.
-      HashMap<String, Object> map = new HashMap<String, Object>();
-      List<String> memberList = new ArrayList<>();
-      memberList.add(userName);
+      HashMap<String, Object> map = new HashMap<>();
+      HashMap<String, String> memberList = new HashMap<>();
+      memberList.put(userName,session.getId());
       map.put("roomId", roomId);
       map.put(session.getId(), session);
       map.put("memberList", memberList);
       map.put("adminSession", session.getId());
       map.put("memberCount", 1);
+      obj.put("isAdmin", true);
       rls.add(map);
     }
 
     //세션등록이 끝나면 발급받은 세션ID값의 메시지를 발송한다.
-    JSONObject obj = new JSONObject();
     obj.put("type", "getId");
     obj.put("sessionId", session.getId());
     session.sendMessage(new TextMessage(obj.toJSONString()));
@@ -147,14 +145,25 @@ public class SocketHandler extends TextWebSocketHandler {
   public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
     //소켓 종료
     //sessionMap.remove(session.getId());
+    JSONObject obj = new JSONObject();
     //소켓 종료
     if(rls.size() > 0) { //소켓이 종료되면 해당 세션값들을 찾아서 지운다.
       for(int i=0; i<rls.size(); i++) {
         if (rls.get(i).get(session.getId()) != null) {
-          System.out.println("세션 제거");
           HashMap<String, Object> map = rls.get(i);
           int memberCount = (int) map.get("memberCount");
+          HashMap<String, String> memberList = (HashMap<String, String>) map.get("memberList");
+          memberList.remove(getKey(memberList,session.getId()));
           map.put("memberCount", --memberCount);
+          map.put("memberList",memberList);
+          Object tempKey = getFirstKey(memberList);
+          if (tempKey != null) {
+            String sessionKey = memberList.get(tempKey);
+            WebSocketSession wss = (WebSocketSession) map.get(sessionKey);
+            obj.put("type", "adminLeft");
+            obj.put("isAdmin", true);
+            wss.sendMessage(new TextMessage(obj.toJSONString()));
+          }
         }
         //System.out.println("rls.get(i).get(session.getId()) = " + rls.get(i).get(session.getId()));
         rls.get(i).remove(session.getId());
@@ -175,6 +184,18 @@ public class SocketHandler extends TextWebSocketHandler {
     return 0;
   }
 
+  public HashMap<String, String> getMemberList(String roomId) {
+    if(rls.size() > 0) {
+      for(int i=0; i<rls.size(); i++) {
+        String getRoomId = (String) rls.get(i).get("roomId");
+        if(getRoomId.equals(roomId)) {
+          return (HashMap<String, String>) rls.get(i).get("memberList");
+        }
+      }
+    }
+    return new HashMap<>();
+  }
+
   private static JSONObject jsonToObjectParser(String jsonStr) {
     JSONParser parser = new JSONParser();
     JSONObject obj = null;
@@ -184,5 +205,23 @@ public class SocketHandler extends TextWebSocketHandler {
       e.printStackTrace();
     }
     return obj;
+  }
+
+  public static Object getKey(HashMap<String, String> getHashMap, Object value) {
+    for(Object o: getHashMap.keySet()) {
+      if(getHashMap.get(o).equals(value)) {
+        return o;
+      }
+    }
+    return null;
+  }
+
+  public static Object getFirstKey(HashMap<String, String> getHashMap) {
+    for(Object o: getHashMap.keySet()) {
+      if(getHashMap.get(o) != null) {
+        return o;
+      }
+    }
+    return null;
   }
 }
