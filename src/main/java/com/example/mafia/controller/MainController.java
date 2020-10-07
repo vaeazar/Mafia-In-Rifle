@@ -1,6 +1,8 @@
 package com.example.mafia.controller;
 
 import com.example.mafia.domain.Room;
+import com.example.mafia.handler.SocketHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +21,9 @@ public class MainController {
 
   List<Room> roomList = new ArrayList<Room>();
   static int roomNumber = 0;
+
+  @Autowired
+  SocketHandler socketHandler;
 
 
   @RequestMapping("/")
@@ -52,6 +57,7 @@ public class MainController {
       Room room = new Room();
       room.setRoomNumber(++roomNumber);
       room.setRoomName(roomName);
+      room.setRoomCount(0);
       String uniqueValue = UUID.randomUUID().toString().substring(0,8);
       uniqueValue += System.currentTimeMillis();
       room.setRoomId(uniqueValue);
@@ -67,6 +73,11 @@ public class MainController {
    */
   @RequestMapping("/getRoom")
   public @ResponseBody List<Room> getRoom(@RequestParam HashMap<Object, Object> params){
+    for (int i = 0; i < roomList.size(); i++) {
+      Room room = roomList.get(i);
+      room.setRoomCount(socketHandler.getRoomCount(room.getRoomId()));
+      roomList.set(i,room);
+    }
     return roomList;
   }
 

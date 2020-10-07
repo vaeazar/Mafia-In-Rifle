@@ -12,6 +12,7 @@
 <body>
 <div id="container" class="container">
     <h1>${roomName}</h1>
+    <p id="announce"></p>
     <input type="hidden" id="sessionId" value="">
     <input type="hidden" id="roomNumber" value="${roomNumber}">
     <input type="hidden" id="roomId" value="${roomId}">
@@ -22,6 +23,7 @@
 
     <div id="yourName">
         <table class="inputTable">
+
             <tr>
                 <th>사용자명</th>
                 <td><input type="text" name="userName" id="userName"></td>
@@ -41,5 +43,7 @@
         </table>
     </div>
 </div>
+
+
 </body>
 </html>

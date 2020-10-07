@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 function wsOpen(){
     //socketVar = new WebSocket("ws://" + location.host + "/chating");
-    socketVar = new WebSocket("ws://" + location.host + "/chating/"+$("#roomId").val());
+    socketVar = new WebSocket("ws://" + location.host + "/chating/"+$("#roomId").val()+"_"+$("#userName").val());
     wsEvt();
 }
 
@@ -97,3 +97,39 @@ function send() {
     socketVar.send(JSON.stringify(option));
     $('#chatting').val("");
 }
+
+// 타이머 function
+
+// Set the date we're counting down to
+function timer () {
+
+    var countDownDate = new Date();
+    countDownDate.setMinutes(countDownDate.getMinutes() + 5);
+
+// Update the count down every 1 second
+    var x = setInterval(function () {
+
+        // Get today's date and time
+        var now = new Date();
+
+        // Find the distance between now and the count down date
+        var distance = countDownDate - now;
+
+        // Time calculations for days, hours, minutes and seconds
+        // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        // var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Display the result in the element with id="demo"
+        document.getElementById("announce").innerHTML = "낮시간 " + minutes + "분 " + seconds + "초 남았습니다.";
+
+        // If the count down is finished, write some text
+        if (distance < 0) {
+            clearInterval(x);
+            document.getElementById("announce").innerHTML = "EXPIRED";
+        }
+    }, 1000);
+
+}
+
