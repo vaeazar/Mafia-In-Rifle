@@ -68,3 +68,12 @@ button{
     width: 330px;
     height: 25px;
 }
+.chatColorTable th{
+    padding: 5px;
+}
+.chatColorTable td{
+    padding: 5px;
+}
+.chatColorTable td label{
+    margin-left: 5px;
+}

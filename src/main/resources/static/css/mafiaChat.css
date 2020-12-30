@@ -32,7 +32,7 @@
     color: #FFBB00;
     text-align: right;
     word-break: break-all;
-    font-size: xx-large;
+    font-size: 1.0em;
     padding: 2px;
     letter-spacing: 1px;
 }
@@ -40,7 +40,7 @@
     color: #F6F6F6;
     text-align: left;
     word-break: break-all;
-    font-size: xx-large;
+    font-size: 1.0em;
     padding: 2px;
     letter-spacing: 1px;
 }
@@ -48,7 +48,7 @@
     color: #d66fff;
     text-align: right;
     word-break: break-all;
-    font-size: xx-large;
+    font-size: 1.0em;
     padding: 2px;
     letter-spacing: 1px;
 }
@@ -56,7 +56,7 @@
     color: #ff0000;
     text-align: left;
     word-break: break-all;
-    font-size: xx-large;
+    font-size: 1.0em;
     padding: 2px;
     letter-spacing: 1px;
 }

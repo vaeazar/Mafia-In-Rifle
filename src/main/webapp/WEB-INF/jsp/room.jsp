@@ -4,6 +4,8 @@
 <html>
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <meta charset="UTF-8">
     <title>Room</title>
     <link rel="stylesheet" href="/css/room.css">
@@ -23,6 +25,10 @@
     <div>
         <table class="inputTable">
             <tr>
+                <th>닉네임</th>
+                <th><input type="text" name="userId" id="userId"></th>
+            </tr>
+            <tr>
                 <th>방 제목</th>
                 <th><input type="text" name="roomName" id="roomName"></th>
                 <th><button id="createRoom">방 만들기</button></th>
@@ -30,5 +36,7 @@
         </table>
     </div>
 </div>
+<input type="hidden" name="errorMessage" id="errorMessage" value="${errorMessage}">
+<input type="hidden" name="errorFlag" id="errorFlag" value="${errorFlag}">
 </body>
 </html>
