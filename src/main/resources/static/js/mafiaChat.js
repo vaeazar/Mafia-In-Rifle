@@ -148,19 +148,16 @@ function timer () {
         // Find the distance between now and the count down date
         var distance = countDownDate - now;
 
-        // Time calculations for days, hours, minutes and seconds
-        // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        // var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         // Display the result in the element with id="demo"
-        document.getElementById("announce").innerHTML = "낮시간 " + minutes + "분 " + seconds + "초 남았습니다.";
+        document.getElementById("announce").innerHTML = minutes + "분 " + seconds + "초 남았습니다.";
 
         // If the count down is finished, write some text
         if (distance < 0) {
             clearInterval(x);
-            document.getElementById("announce").innerHTML = "EXPIRED";
+            // document.getElementById("announce").innerHTML = "EXPIRED";
         }
     }, 1000);
 
@@ -173,6 +170,12 @@ function commonAjax(url, parameter, type, calbak, contentType){
         type: type,
         contentType : contentType!=null?contentType:'application/x-www-form-urlencoded; charset=UTF-8',
         success: function (res) {
+            Swal.fire({
+                icon: 'info',
+                title: '방장이 게임을 시작했습니다.',
+                text: '바로 게임이 시작됩니다...'
+            })
+            timer();
             calbak(res);
         },
         error : function(err){
