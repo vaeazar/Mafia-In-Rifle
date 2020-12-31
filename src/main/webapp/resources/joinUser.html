@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Join to Mafia</title>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script src="https://cdn.jsdelivr.net/npm/promise-polyfill"></script>
 <script>
 
     var hasIdChecked = false;
@@ -70,10 +72,18 @@
         var checkMsgDom = document.getElementById("noticePasswordEqual");
         if(checkMsgDom.style.color != "green" || hasIdChecked == false) {
             if(hasIdChecked == false){
-                alert("아이디 중복체크를 해주세요!");
+                Swal.fire({
+                    title : "회원가입 오류!",
+                    text : "아이디 중복 체크를 해주세요!",
+                    icon : "warning"
+                })
             }
             else if(checkMsgDom.style.color != "green") {
-                alert("비밀번호가 일치하지 않습니다!");
+                Swal.fire({
+                    title : "회원가입 오류!",
+                    text : "비밀번호가 일치하지 않습니다!",
+                    icon : "warning"
+                })
             }
             return false;
         }
@@ -90,10 +100,22 @@
                 var str = request.responseText;
                 console.log("str : "+str);
                 if(str == "true") {
-                    alert("회원가입에 성공하였습니다.");
-                    self.close();
+                    Swal.fire({
+                        title : "회원가입에 성공했습니다!",
+                        text : "마피아 세계에 온 것을 환영합니다!",
+                        icon : "success",
+                        buttons : ["YES","NO"]
+                    }).then((YES) => {
+                        if(YES) {
+                            self.close();
+                        }
+                    });
                 } else {
-                    alert("회원가입에 실패하였습니다.");
+                    Swal.fire({
+                        title : "회원가입 오류!",
+                        text : "회원 정보 입력에 실패했습니다!",
+                        icon : "warning"
+                    })
                 }
             }
         }
@@ -104,7 +126,7 @@
 </script>
 <body>
     <div>
-        <form id="joinForm" action="/mafia/user/insert" method="post">
+        <form id="joinForm">
             이름 : <input type="text" name="username" id="username" required>
             <br>
             아이디 : <input type="text" name="userid" id="userid" required/>
