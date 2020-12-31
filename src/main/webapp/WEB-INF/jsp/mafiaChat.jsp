@@ -22,7 +22,11 @@
     <input type="hidden" id="roomId" value="${roomId}">
     <input type="hidden" id="myJob" value="mafia">
 
-    <div id="chating" class="chating">
+    <div class="chatAndList">
+        <div id="chating" class="chating">
+        </div>
+        <div id="memberList" class="memberList">
+        </div>
     </div>
 
     <div id="yourName">

@@ -44,7 +44,7 @@ public class SocketHandler extends TextWebSocketHandler {
       String jsonGetRoomId = (String) obj.get("roomId");
       HashMap<String, Object> temp = new HashMap<>();
       if (jsonGetType.equals("jobSave")) {
-        HashMap<String,String> jobSave = new HashMap<>();
+        HashMap<String, String> jobSave = new HashMap<>();
         String[] jsonGetPlayerId = obj.get("playerId").toString().split("|");
         String[] jsonGetPlayerJob = obj.get("playerJob").toString().split("|");
         for (int idx = 0; idx < jsonGetPlayerId.length; idx++) {
@@ -54,27 +54,27 @@ public class SocketHandler extends TextWebSocketHandler {
           playerJob.setPlayerJob(jsonGetPlayerJob[idx]);
           playerJobMongoDBRepository.insert(playerJob);
         }
-      } else if(rls.size() > 0) {
-        for(int i=0; i<rls.size(); i++) {
+      } else if (rls.size() > 0) {
+        for (int i = 0; i < rls.size(); i++) {
           String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
-          if(roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
             temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
             break;
           }
         }
 
         //해당 방의 세션들만 찾아서 메시지를 발송해준다.
-        for(String k : temp.keySet()) {
-          if(k.equals("roomId")) { //다만 방번호일 경우에는 건너뛴다.
+        for (String k : temp.keySet()) {
+          if (k.equals("roomId")) { //다만 방번호일 경우에는 건너뛴다.
             continue;
           }
 
-          if(k.equals("adminSession") || k.equals("memberList") || k.equals("memberCount")) { //다만 방번호일 경우에는 건너뛴다.
+          if (k.equals("adminSession") || k.equals("memberList") || k.equals("memberCount")) { //다만 방번호일 경우에는 건너뛴다.
             continue;
           }
 
           WebSocketSession wss = (WebSocketSession) temp.get(k);
-          if(wss != null) {
+          if (wss != null) {
             wss.sendMessage(new TextMessage(obj.toJSONString()));
           }
         }
@@ -87,9 +87,9 @@ public class SocketHandler extends TextWebSocketHandler {
 //        WebSocketSession wss = sessionMap.get(key);
 //        wss.sendMessage(new TextMessage(obj.toJSONString()));
 //      }
-    }catch(IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
-    }catch(Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
@@ -114,10 +114,10 @@ public class SocketHandler extends TextWebSocketHandler {
       userName = "";
     }
     int idx = rls.size(); //방의 사이즈를 조사한다.
-    if(rls.size() > 0) {
-      for(int i=0; i<rls.size(); i++) {
+    if (rls.size() > 0) {
+      for (int i = 0; i < rls.size(); i++) {
         String getRoomId = (String) rls.get(i).get("roomId");
-        if(getRoomId.equals(roomId)) {
+        if (getRoomId.equals(roomId)) {
           flag = true;
           idx = i;
           break;
@@ -125,8 +125,9 @@ public class SocketHandler extends TextWebSocketHandler {
       }
     }
 
-    if(flag) { //존재하는 방이라면 세션만 추가한다.
+    if (flag) { //존재하는 방이라면 세션만 추가한다.
       JSONObject failObj = new JSONObject();
+      JSONObject listObj = new JSONObject();
       HashMap<String, Object> map = rls.get(idx);
       HashMap<String, String> memberList = (HashMap<String, String>) rls.get(idx).get("memberList");
       int memberCount = (int) map.get("memberCount");
@@ -143,10 +144,15 @@ public class SocketHandler extends TextWebSocketHandler {
         session.sendMessage(new TextMessage(failObj.toJSONString()));
         return;
       } else if (memberCount == 0) {
-        map.put("adminSession",session.getId());
+        map.put("adminSession", session.getId());
         obj.put("isAdmin", true);
       }
-      memberList.put(userName,session.getId());
+      listObj.put("type", "memberList");
+      listObj.put("newMemberName", userName);
+      listObj.put("failMessage", "존재하지 않는 방입니다.");
+      memberList.put(userName, session.getId());
+      listObj.put("memberList", memberList.keySet());
+      messageSend(roomId,listObj);
       map.put(session.getId(), session);
       map.put("memberList", memberList);
       map.put("memberCount", ++memberCount);
@@ -181,16 +187,16 @@ public class SocketHandler extends TextWebSocketHandler {
     //sessionMap.remove(session.getId());
     JSONObject obj = new JSONObject();
     //소켓 종료
-    if(rls.size() > 0) { //소켓이 종료되면 해당 세션값들을 찾아서 지운다.
-      for(int i=0; i<rls.size(); i++) {
+    if (rls.size() > 0) { //소켓이 종료되면 해당 세션값들을 찾아서 지운다.
+      for (int i = 0; i < rls.size(); i++) {
         if (rls.get(i).get(session.getId()) != null) {
           HashMap<String, Object> map = rls.get(i);
           int memberCount = (int) map.get("memberCount");
           HashMap<String, String> memberList = (HashMap<String, String>) map.get("memberList");
-          Boolean isAdmin = checkAdmin((String) map.get("adminSession"),session.getId());
-          memberList.remove(getKey(memberList,session.getId()));
+          Boolean isAdmin = checkAdmin((String) map.get("adminSession"), session.getId());
+          memberList.remove(getKey(memberList, session.getId()));
           map.put("memberCount", --memberCount);
-          map.put("memberList",memberList);
+          map.put("memberList", memberList);
           Object tempKey = getFirstKey(memberList);
           if (tempKey != null) {
             if (isAdmin) {
@@ -202,17 +208,17 @@ public class SocketHandler extends TextWebSocketHandler {
               map.put("adminSession", sessionKey);
             }
             map.remove(session.getId());
-            rls.set(i,map);
+            rls.set(i, map);
           } else {
-            if (!StringUtils.isEmpty(rls.get(i).get(session.getId()))){
+            if (!StringUtils.isEmpty(rls.get(i).get(session.getId()))) {
               URL url = new URL("http://localhost:8080/roomDelete/" + rls.get(i).get("roomId"));
-              HttpURLConnection con = (HttpURLConnection)url.openConnection();
+              HttpURLConnection con = (HttpURLConnection) url.openConnection();
               con.setRequestMethod("POST");
               int responseCode = con.getResponseCode();
               if (responseCode == 200) {
-                log.info("roomDelete complete!! roomId : {}",rls.get(i).get("roomId"));
+                log.info("roomDelete complete!! roomId : {}", rls.get(i).get("roomId"));
               } else {
-                log.info("roomDelete fail!! roomId : {}",rls.get(i).get("roomId"));
+                log.info("roomDelete fail!! roomId : {}", rls.get(i).get("roomId"));
               }
               con.disconnect();
               rls.remove(i);
@@ -225,10 +231,10 @@ public class SocketHandler extends TextWebSocketHandler {
   }
 
   public int getRoomCount(String roomId) {
-    if(rls.size() > 0) {
-      for(int i=0; i<rls.size(); i++) {
+    if (rls.size() > 0) {
+      for (int i = 0; i < rls.size(); i++) {
         String getRoomId = (String) rls.get(i).get("roomId");
-        if(getRoomId.equals(roomId)) {
+        if (getRoomId.equals(roomId)) {
           return (int) rls.get(i).get("memberCount");
         }
       }
@@ -237,10 +243,10 @@ public class SocketHandler extends TextWebSocketHandler {
   }
 
   public HashMap<String, String> getMemberList(String roomId) {
-    if(rls.size() > 0) {
-      for(int i=0; i<rls.size(); i++) {
+    if (rls.size() > 0) {
+      for (int i = 0; i < rls.size(); i++) {
         String getRoomId = (String) rls.get(i).get("roomId");
-        if(getRoomId.equals(roomId)) {
+        if (getRoomId.equals(roomId)) {
           return (HashMap<String, String>) rls.get(i).get("memberList");
         }
       }
@@ -260,8 +266,8 @@ public class SocketHandler extends TextWebSocketHandler {
   }
 
   public static Object getKey(HashMap<String, String> getHashMap, Object value) {
-    for(Object o: getHashMap.keySet()) {
-      if(getHashMap.get(o).equals(value)) {
+    for (Object o : getHashMap.keySet()) {
+      if (getHashMap.get(o).equals(value)) {
         return o;
       }
     }
@@ -274,8 +280,8 @@ public class SocketHandler extends TextWebSocketHandler {
 
 
   public static Object getFirstKey(HashMap<String, String> getHashMap) {
-    for(Object o: getHashMap.keySet()) {
-      if(getHashMap.get(o) != null) {
+    for (Object o : getHashMap.keySet()) {
+      if (getHashMap.get(o) != null) {
         return o;
       }
     }
@@ -288,5 +294,38 @@ public class SocketHandler extends TextWebSocketHandler {
     map.put("memberList", new HashMap<>());
     map.put("memberCount", 0);
     rls.add(map);
+  }
+
+  private void messageSend(String jsonGetRoomId, JSONObject sendObj) {
+
+    try {
+      HashMap<String, Object> temp = new HashMap<>();
+
+      for (int i = 0; i < rls.size(); i++) {
+        String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
+        if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+          temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+          break;
+        }
+      }
+
+      //해당 방의 세션들만 찾아서 메시지를 발송해준다.
+      for (String k : temp.keySet()) {
+        if (k.equals("roomId")) { //다만 방번호일 경우에는 건너뛴다.
+          continue;
+        }
+
+        if (k.equals("adminSession") || k.equals("memberList") || k.equals("memberCount")) { //다만 방번호일 경우에는 건너뛴다.
+          continue;
+        }
+
+        WebSocketSession wss = (WebSocketSession) temp.get(k);
+        if (wss != null) {
+          wss.sendMessage(new TextMessage(sendObj.toJSONString()));
+        }
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

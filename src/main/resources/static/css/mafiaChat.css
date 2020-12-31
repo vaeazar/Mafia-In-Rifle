@@ -8,7 +8,7 @@
     letter-spacing: 1px;
 }
 .container{
-    width: 700px;
+    width: 40em;
     margin: 0 auto;
     padding: 25px;
 }
@@ -20,13 +20,26 @@
     margin-bottom: 20px;
     font-size: xxx-large;
 }
-.chating{
+.chatAndList {
+}
+.memberList {
+    margin-left: 1em;
     background-color: black;
-    width: 700px;
-    height: 700px;
+    width: 5em;
+    height: 10em;
     overflow: auto;
     padding: 5px;
     border: solid darkorange 5px;
+    border-left: 0px;
+}
+.chating{
+    background-color: black;
+    width: 30em;
+    height: 35em;
+    overflow: auto;
+    padding: 5px;
+    border: solid darkorange 5px;
+    float: left;
 }
 .chating .me{
     color: #FFBB00;
