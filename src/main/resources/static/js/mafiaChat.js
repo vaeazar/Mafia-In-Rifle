@@ -191,6 +191,10 @@ function send() {
   $('#chatting').val("");
 }
 
+function backToRoomList() {
+  $(location).attr('href', "/");
+}
+
 function startGame() {
   var roomId = {roomId: $('#roomId').val()};
   commonAjax('/setRoomStart', roomId, 'post', function () {
