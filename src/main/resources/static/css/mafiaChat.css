@@ -57,6 +57,22 @@
     padding: 2px;
     letter-spacing: 1px;
 }
+.memberList .member{
+    color: #F6F6F6;
+    text-align: left;
+    word-break: break-all;
+    font-size: 1.0em;
+    padding: 2px;
+    letter-spacing: 1px;
+}
+.chating .newMemberJoin{
+    color: #F6F6F6;
+    text-align: cn;
+    word-break: break-all;
+    font-size: 1.0em;
+    padding: 2px;
+    letter-spacing: 1px;
+}
 .chating .me-mafia{
     color: #d66fff;
     text-align: right;

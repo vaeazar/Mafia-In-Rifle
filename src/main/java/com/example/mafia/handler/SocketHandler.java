@@ -18,6 +18,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.*;
 
 @Component
@@ -101,6 +102,7 @@ public class SocketHandler extends TextWebSocketHandler {
     //sessionMap.put(session.getId(), session);
     boolean flag = false;
     JSONObject obj = new JSONObject();
+    JSONObject listObj = new JSONObject();
     String url = session.getUri().toString();
     System.out.println(url);
     String tempUrlString[] = url.split("/chating/")[1].split("_");
@@ -108,7 +110,7 @@ public class SocketHandler extends TextWebSocketHandler {
     String userName = "";
     if (tempUrlString.length > 1) {
       roomId = url.split("/chating/")[1].split("_")[0];
-      userName = url.split("/chating/")[1].split("_")[1];
+      userName = URLEncoder.encode(url.split("/chating/")[1].split("_")[1],"UTF-8");
     } else {
       roomId = "";
       userName = "";
@@ -127,7 +129,6 @@ public class SocketHandler extends TextWebSocketHandler {
 
     if (flag) { //존재하는 방이라면 세션만 추가한다.
       JSONObject failObj = new JSONObject();
-      JSONObject listObj = new JSONObject();
       HashMap<String, Object> map = rls.get(idx);
       HashMap<String, String> memberList = (HashMap<String, String>) rls.get(idx).get("memberList");
       int memberCount = (int) map.get("memberCount");
@@ -152,7 +153,6 @@ public class SocketHandler extends TextWebSocketHandler {
       listObj.put("failMessage", "존재하지 않는 방입니다.");
       memberList.put(userName, session.getId());
       listObj.put("memberList", memberList.keySet());
-      messageSend(roomId,listObj);
       map.put(session.getId(), session);
       map.put("memberList", memberList);
       map.put("memberCount", ++memberCount);
@@ -179,6 +179,7 @@ public class SocketHandler extends TextWebSocketHandler {
     obj.put("type", "getId");
     obj.put("sessionId", session.getId());
     session.sendMessage(new TextMessage(obj.toJSONString()));
+    messageSend(roomId,listObj);
   }
 
   @Override
