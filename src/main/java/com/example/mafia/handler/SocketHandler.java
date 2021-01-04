@@ -6,6 +6,7 @@ import com.example.mafia.repository.PlayerJobMongoDBRepository;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -131,6 +132,11 @@ public class SocketHandler extends TextWebSocketHandler {
       JSONObject failObj = new JSONObject();
       HashMap<String, Object> map = rls.get(idx);
       HashMap<String, String> memberList = (HashMap<String, String>) rls.get(idx).get("memberList");
+
+      for (String str : memberList.keySet()) {
+        System.out.println("member "+str+" "+memberList.get(str));
+      }
+
       int memberCount = (int) map.get("memberCount");
       if (memberCount > 14) {
         failObj.put("type", "fail");
@@ -152,7 +158,15 @@ public class SocketHandler extends TextWebSocketHandler {
       listObj.put("newMemberName", userName);
       listObj.put("failMessage", "존재하지 않는 방입니다.");
       memberList.put(userName, session.getId());
-      listObj.put("memberList", memberList.keySet());
+      //listObj.put("memberList", memberList.keySet());
+
+      Set<String> memberSet = memberList.keySet();
+      JSONArray jsonArray = new JSONArray();
+
+      for (String str : memberSet) {
+        jsonArray.add(str);
+      }
+      listObj.put("memberList",jsonArray);
       map.put(session.getId(), session);
       map.put("memberList", memberList);
       map.put("memberCount", ++memberCount);
