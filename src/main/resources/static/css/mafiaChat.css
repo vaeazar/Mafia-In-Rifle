@@ -52,7 +52,6 @@
 .chating .others{
     color: #F6F6F6;
     text-align: left;
-    word-break: break-all;
     font-size: 1.0em;
     padding: 2px;
     letter-spacing: 1px;
@@ -60,14 +59,17 @@
 .memberList .member{
     color: #F6F6F6;
     text-align: left;
-    word-break: break-all;
     font-size: 1.0em;
     padding: 2px;
     letter-spacing: 1px;
+    width: 100%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 .chating .newMemberJoin{
     color: #F6F6F6;
-    text-align: cn;
+    text-align: center;
     word-break: break-all;
     font-size: 1.0em;
     padding: 2px;

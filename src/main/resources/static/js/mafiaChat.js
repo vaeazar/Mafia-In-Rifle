@@ -54,6 +54,7 @@ function wsEvt() {
   socketVar.onmessage = function (data) {
     var msg = data.data;
     if (msg != null && msg.trim() != '') {
+      console.log(msg);
       var jsonTemp = JSON.parse(msg);
       if (jsonTemp.type == "getId") {
         var sessionId = jsonTemp.sessionId != null ? jsonTemp.sessionId : "";
