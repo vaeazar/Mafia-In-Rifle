@@ -140,9 +140,26 @@ function wsEvt() {
           $("#chating").scrollTop($("#chating")[0].scrollHeight);
         }
       } else if (jsonTemp.type == "showyourjob"){
-        var chatColor = jsonTemp.job=="mafia" ? "red" : "white";
+        /*var chatColor = jsonTemp.job=="mafia" ? "red" : "white";
         $("#chating").append(
             "<p class='show-your-job' style='color:"+chatColor+";'>당신의 직업은 "+jsonTemp.job+" 입니다.</p>"
+        );*/
+        console.log(jsonTemp.msg);
+        var jobs = jsonTemp.msg;
+        var yourJob = "";
+        var chatColor = "white";
+        for (var i in jobs) {
+          console.log(jobs[i].name+" "+$("#userId").val());
+          if (jobs[i].name == $("#userId").val()) {
+            yourJob = jobs[i].job;
+            if (yourJob == "mafia") {
+              chatColor = "red";
+            }
+            break;
+          }
+        }
+        $("#chating").append(
+            "<p class='show-your-job' style='color:"+chatColor+";'>당신의 직업은 "+yourJob+" 입니다.</p>"
         );
       } else {
         console.warn("unknown type!")
@@ -216,13 +233,13 @@ function backToRoomList() {
 
 function startGame() {
   var roomId = {roomId: $('#roomId').val()};
-  commonAjax('/setRoomStart', roomId, 'post', function () {
-    $("#startBtn").remove();
-  });
   var memberCnt = $(".member").length;
   if (memberCnt<8) {
-    $("#chating").append("<p class='game-not-start'>게임 시작에는 8명 이상이 필요합니다!</p>");
+    $("#chating").append("<p class='game-not-start' style='color:white;'>게임 시작에는 8명 이상이 필요합니다!</p>");
   } else {
+    commonAjax('/setRoomStart', roomId, 'post', function () {
+      $("#startBtn").remove();
+    });
     showYourJob();
   }
 }
@@ -309,27 +326,22 @@ function unload() {
 
 function showYourJob() {
   var request = new XMLHttpRequest();
-  var option;
   request.onload = function () {
     if (request.status == 200) {
       var str = request.responseText;
       var jobs = JSON.parse(str);
-      console.log(jobs);
-      var yourJob = "";
-      for(var i in jobs) {
-        if (jobs[i].name==$("#userId").val()) {
-          yourJob = jobs[i].job;
-          break;
-        }
-      }
+      var option;
       option = {
         type: "showyourjob",
-        job: yourJob
+        roomNumber: $("#roomNumber").val(),
+        roomId: $("#roomId").val(),
+        sessionId: $("#sessionId").val(),
+        userId: $("#userId").val(),
+        msg: jobs
       };
+      socketVar.send(JSON.stringify(option));
     }
   }
   request.open('GET',"/startGame/"+$("#roomId").val(),true);
   request.send();
-
-  socketVar.send(JSON.stringify(option));
 }
