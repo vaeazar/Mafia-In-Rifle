@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -222,5 +219,18 @@ public class MainController {
     } catch (Exception e) {
       return "deleteFail";
     }
+  }
+
+  @RequestMapping("/startGame/{id}")
+  public @ResponseBody
+  ArrayList<Map<String, String>> startGame(@PathVariable("id") String roomId) {
+    ArrayList<Map<String, String>> jobs = new ArrayList<>();
+    for (int i=0;i<roomList.size();i++) {
+      String getRoomId = roomList.get(i).getRoomId();
+      if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+        jobs = socketHandler.giveJobs(roomId);
+      }
+    }
+    return jobs;
   }
 }

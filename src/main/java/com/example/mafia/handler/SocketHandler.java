@@ -331,4 +331,42 @@ public class SocketHandler extends TextWebSocketHandler {
       e.printStackTrace();
     }
   }
+
+  public ArrayList<Map<String, String>> giveJobs(String roomId) {
+    Map<String, String> jobs = new HashMap<>();
+    int idx = 0;
+    for (int i = 0; i < rls.size(); i++) {
+      String getRoomId = (String) rls.get(i).get("roomId");
+      if (getRoomId.equals(roomId)) {
+        idx = i;
+        break;
+      }
+    }
+    Map<String, String> memberList = (Map<String, String>) rls.get(idx).get("memberList");
+    int memberCnt = memberList.size();
+    String[] specialJobs = new String[]{"mafia","mafia","cop","doctor"};
+    ArrayList<Map<String, String>> jobList = new ArrayList<>();
+    ArrayList<String> memberNameList = new ArrayList<>();
+
+    for (String memberName : memberList.keySet()) {
+      memberNameList.add(memberName);
+    }
+    Collections.shuffle(memberNameList);
+
+    for (int i=0;i<4;i++) {
+      Map<String, String> map = new HashMap<>();
+      map.put("name",memberNameList.get(i));
+      map.put("job",specialJobs[i]);
+      jobList.add(map);
+    }
+
+    for (int i=4;i<memberCnt;i++) {
+      Map<String, String> map = new HashMap<>();
+      map.put("name",memberNameList.get(i));
+      map.put("job","citizen");
+      jobList.add(map);
+    }
+
+    return jobList;
+  }
 }
