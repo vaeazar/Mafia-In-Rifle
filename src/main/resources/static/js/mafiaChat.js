@@ -140,27 +140,15 @@ function wsEvt() {
           $("#chating").scrollTop($("#chating")[0].scrollHeight);
         }
       } else if (jsonTemp.type == "showyourjob"){
-        /*var chatColor = jsonTemp.job=="mafia" ? "red" : "white";
-        $("#chating").append(
-            "<p class='show-your-job' style='color:"+chatColor+";'>당신의 직업은 "+jsonTemp.job+" 입니다.</p>"
-        );*/
         console.log(jsonTemp.msg);
         var jobs = jsonTemp.msg;
-        var yourJob = "";
-        var chatColor = "white";
-        for (var i in jobs) {
-          console.log(jobs[i].name+" "+$("#userId").val());
-          if (jobs[i].name == $("#userId").val()) {
-            yourJob = jobs[i].job;
-            if (yourJob == "mafia") {
-              chatColor = "red";
-            }
-            break;
-          }
-        }
+        var userId = $("#userId").val();
+        var result = determineJob(jobs,userId);
         $("#chating").append(
-            "<p class='show-your-job' style='color:"+chatColor+";'>당신의 직업은 "+yourJob+" 입니다.</p>"
+            "<p class='show-your-job' style='color:"+result.chatColor+";'>당신의 직업은 "+result.yourJob+" 입니다.</p>"
         );
+      } else if (jsonTemp.type == "timeCountDown"){
+        $("#announce").text(jsonTemp.msg);
       } else {
         console.warn("unknown type!")
       }
@@ -247,10 +235,11 @@ function startGame() {
 // 타이머 function
 
 // Set the date we're counting down to
-function timer() {
+function timer(min,sec,type) {
 
   var countDownDate = new Date();
-  countDownDate.setMinutes(countDownDate.getMinutes() + 5);
+  countDownDate.setMinutes(countDownDate.getMinutes() + min);
+  countDownDate.setSeconds(countDownDate.getSeconds() + sec);
 
 // Update the count down every 1 second
   var x = setInterval(function () {
@@ -260,7 +249,6 @@ function timer() {
 
     // Find the distance between now and the count down date
     var distance = countDownDate - now;
-
     // Time calculations for days, hours, minutes and seconds
     // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
     // var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -268,16 +256,24 @@ function timer() {
     var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
     // Display the result in the element with id="demo"
-    document.getElementById("announce").innerHTML = "낮시간 " + minutes + "분 "
+    var announce = type + "시간 " + minutes + "분 "
         + seconds + "초 남았습니다.";
-
+    var option = {
+      type: "timeCountDown",
+      roomNumber: $("#roomNumber").val(),
+      roomId: $("#roomId").val(),
+      sessionId: $("#sessionId").val(),
+      userId: $("#userId").val(),
+      msg: announce
+    };
     // If the count down is finished, write some text
     if (distance < 0) {
       clearInterval(x);
       document.getElementById("announce").innerHTML = "EXPIRED";
+    } else {
+      socketVar.send(JSON.stringify(option));
     }
   }, 1000);
-
 }
 
 function commonAjax(url, parameter, type, calbak, contentType) {
@@ -344,4 +340,38 @@ function showYourJob() {
   }
   request.open('GET',"/startGame/"+$("#roomId").val(),true);
   request.send();
+}
+
+var determineJob = function(jobs, userId) {
+  var yourJob = "";
+  var chatColor = "white";
+  for (var i in jobs) {
+    console.log(jobs[i].name+" "+userId);
+    if (jobs[i].name == userId) {
+      yourJob = jobs[i].job;
+      if (yourJob == "mafia") {
+        chatColor = "red";
+      }
+      break;
+    }
+  }
+  return {
+    yourJob : yourJob,
+    chatColor : chatColor
+  };
+};
+
+function gameProcess() {
+  morning();
+  election();
+  execution();
+  night();
+}
+
+function morning() {
+  timer(5,0,"낮");
+}
+
+function election() {
+
 }
