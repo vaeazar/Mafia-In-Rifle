@@ -54,7 +54,6 @@ function wsEvt() {
   socketVar.onmessage = function (data) {
     var msg = data.data;
     if (msg != null && msg.trim() != '') {
-      console.log(msg);
       var jsonTemp = JSON.parse(msg);
       if (jsonTemp.type == "getId") {
         var sessionId = jsonTemp.sessionId != null ? jsonTemp.sessionId : "";
@@ -84,12 +83,15 @@ function wsEvt() {
           $("#chatRoomHeader").append(
               "<button onclick='startGame()' id='startBtn' class='startBtn'>시작</button>");
         }
+      } else if (jsonTemp.type == "roomIsStart") {
+        timer();
       } else if (jsonTemp.type == "fail") {
         if (jsonTemp.failReason == 'nameExist') {
           $("#yourMsg").hide();
           $("#yourName").show();
           Swal.fire({
             icon: 'error',
+            allowOutsideClick: false,
             text: jsonTemp.failMessage
           })
           $("#userId").focus();
@@ -98,14 +100,36 @@ function wsEvt() {
           Swal.fire({
             icon: 'error',
             text: jsonTemp.failMessage,
+            allowOutsideClick: false,
             footer: '<a href="/room">방 목록으로 이동</a>'
+          }, function (isConfirm) {
+            if (isConfirm) {
+              location.href = '/room'; //브라우저가 지원하지 않는 경우 페이지 이동처리
+            } else {
+              location.href = '/room'; //브라우저가 지원하지 않는 경우 페이지 이동처리
+            }
           });
           //location.href("/room");
+        } else if (jsonTemp.failReason == 'joinFailed') {
+          $("#yourMsg").hide();
+          Swal.fire({
+            icon: 'error',
+            text: jsonTemp.failMessage,
+            allowOutsideClick: false,
+            footer: '<a href="/room">방 목록으로 이동</a>'
+          }, function (isConfirm) {
+            if (isConfirm) {
+              location.href = '/room'; //브라우저가 지원하지 않는 경우 페이지 이동처리
+            } else {
+              location.href = '/room'; //브라우저가 지원하지 않는 경우 페이지 이동처리
+            }
+          });
         } else if (jsonTemp.failReason == 'deletedRoom') {
           $("#yourMsg").hide();
           Swal.fire({
             icon: 'error',
             text: jsonTemp.failMessage,
+            allowOutsideClick: false,
             footer: '<a href="/room">방 목록으로 이동</a>'
           }, function (isConfirm) {
             if (isConfirm) {
@@ -215,6 +239,13 @@ function startGame() {
   commonAjax('/setRoomStart', roomId, 'post', function () {
     $("#startBtn").remove();
   });
+
+  var option;
+  option = {
+    type: "roomIsStart",
+    roomId: $('#roomId').val()
+  }
+  socketVar.send(JSON.stringify(option));
 }
 
 // 타이머 function
@@ -248,6 +279,7 @@ function timer() {
     if (distance < 0) {
       clearInterval(x);
       document.getElementById("announce").innerHTML = "EXPIRED";
+      voteOpen();
     }
   }, 1000);
 
@@ -295,4 +327,8 @@ function unload() {
       alert("다른사이트로 이동");
     }
   }
+}
+
+function voteOpen() {
+
 }

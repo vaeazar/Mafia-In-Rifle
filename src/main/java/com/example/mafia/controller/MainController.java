@@ -1,9 +1,11 @@
 package com.example.mafia.controller;
 
 import com.example.mafia.domain.Room;
+import com.example.mafia.domain.Vote;
 import com.example.mafia.handler.SocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -221,6 +223,28 @@ public class MainController {
       return "deleteComplete";
     } catch (Exception e) {
       return "deleteFail";
+    }
+  }
+
+  @RequestMapping("/BBalGangEDa/{roomId}/{voteId}")
+  public @ResponseBody
+  String roomDelete(@PathVariable("roomId") String roomId,@PathVariable("voteId") String playerId) {
+    try {
+      for(int i=0; i<roomList.size(); i++) {
+        String getRoomId = roomList.get(i).getRoomId();
+        if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          if (CollectionUtils.isEmpty(votes)) {
+            votes.put(playerId,1);
+          } else {
+            votes.put(playerId, votes.get(playerId) + 1);
+          }
+          break;
+        }
+      }
+      return "voteComplete";
+    } catch (Exception e) {
+      return "voteFail";
     }
   }
 }

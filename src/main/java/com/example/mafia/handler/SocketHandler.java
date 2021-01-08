@@ -12,6 +12,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -35,6 +36,8 @@ public class SocketHandler extends TextWebSocketHandler {
   //HashMap<String, WebSocketSession> sessionMap = new HashMap<>(); //웹소켓 세션을 담아둘 맵
   private static List<HashMap<String, Object>> rls = new ArrayList<>(); //웹소켓 세션을 담아둘 리스트 ---roomListSessions
 
+  private static List<HashMap<String, Object>> players = new ArrayList<>(); //게임중인 플레이어 정보
+
   @Override
   public void handleTextMessage(WebSocketSession session, TextMessage message) {
     //메시지 발송
@@ -56,6 +59,25 @@ public class SocketHandler extends TextWebSocketHandler {
           playerJob.setPlayerJob(jsonGetPlayerJob[idx]);
           playerJobMongoDBRepository.insert(playerJob);
         }
+      } else if (jsonGetType.equals("roomIsStart")) {
+        int idx = -1;
+        for (int i = 0; i < rls.size(); i++) {
+          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
+          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+            idx = i;
+            break;
+          }
+        }
+        temp.put("roomStatus","start");
+        if (idx != -1) {
+          rls.set(idx,temp);
+        }
+
+        HashMap<String, String> jobSave = new HashMap<>();
+        JSONObject startObj = new JSONObject();
+        startObj.put("type", "roomIsStart");
+        messageSend(jsonGetRoomId, startObj);
       } else if (rls.size() > 0) {
         for (int i = 0; i < rls.size(); i++) {
           String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
@@ -67,11 +89,13 @@ public class SocketHandler extends TextWebSocketHandler {
 
         //해당 방의 세션들만 찾아서 메시지를 발송해준다.
         for (String k : temp.keySet()) {
-          if (k.equals("roomId")) { //다만 방번호일 경우에는 건너뛴다.
-            continue;
-          }
+          Boolean doNotSend = k.equals("roomId")          //방 고유 값
+                            || k.equals("adminSession")   //방장 아이디
+                            || k.equals("memberList")     //맴버 정보
+                            || k.equals("memberCount")    //방 인원 수
+                            || k.equals("roomStatus");    //방 상태 값
 
-          if (k.equals("adminSession") || k.equals("memberList") || k.equals("memberCount")) { //다만 방번호일 경우에는 건너뛴다.
+          if (doNotSend) { //방 정보 통과
             continue;
           }
 
@@ -132,11 +156,18 @@ public class SocketHandler extends TextWebSocketHandler {
       JSONObject failObj = new JSONObject();
       HashMap<String, Object> map = rls.get(idx);
       HashMap<String, String> memberList = (HashMap<String, String>) rls.get(idx).get("memberList");
+      String roomStatus = ObjectUtils.isEmpty(map.get("roomStatus")) == true ? "start" : map.get("roomStatus").toString();
       int memberCount = (int) map.get("memberCount");
       if (memberCount > 14) {
         failObj.put("type", "fail");
         failObj.put("failReason", "fullBang");
         failObj.put("failMessage", "최대 인원이라 참가가 불가능합니다.");
+        session.sendMessage(new TextMessage(failObj.toJSONString()));
+        return;
+      } else if (roomStatus.equals("start")) {
+        failObj.put("type", "fail");
+        failObj.put("failReason", "joinFailed");
+        failObj.put("failMessage", "이미 시작 된 방입니다.");
         session.sendMessage(new TextMessage(failObj.toJSONString()));
         return;
       } else if (memberList.size() > 0 && memberList.get(userName) != null) {
@@ -158,7 +189,7 @@ public class SocketHandler extends TextWebSocketHandler {
       map.put(session.getId(), session);
       map.put("memberList", memberList);
       map.put("memberCount", ++memberCount);
-    } else { //최초 생성하는 방이라면 방번호와 세션을 추가한다.
+    } else {
       JSONObject failObj = new JSONObject();
       failObj.put("type", "fail");
       failObj.put("failReason", "deletedRoom");
@@ -201,8 +232,9 @@ public class SocketHandler extends TextWebSocketHandler {
           map.put("memberCount", --memberCount);
           map.put("memberList", memberList);
           Object tempKey = getFirstKey(memberList);
+          String roomStatus = ObjectUtils.isEmpty(map.get("roomStatus")) == true ? "wait" : map.get("roomStatus").toString();
           if (tempKey != null) {
-            if (isAdmin) {
+            if (isAdmin && roomStatus.equals("wait")) {
               String sessionKey = memberList.get(tempKey);
               WebSocketSession wss = (WebSocketSession) map.get(sessionKey);
               obj.put("type", "adminLeft");
@@ -291,16 +323,16 @@ public class SocketHandler extends TextWebSocketHandler {
     return null;
   }
 
-  public static void setRoomId(String roomId) {
+  public static void setRoomId(String roomId) { //최초 생성하는 방이라면 방번호와 세션을 추가한다.
     HashMap<String, Object> map = new HashMap<>();
     map.put("roomId", roomId);
     map.put("memberList", new HashMap<>());
     map.put("memberCount", 0);
+    map.put("roomStatus", "wait");
     rls.add(map);
   }
 
   private void messageSend(String jsonGetRoomId, JSONObject sendObj) {
-
     try {
       HashMap<String, Object> temp = new HashMap<>();
 
@@ -314,11 +346,13 @@ public class SocketHandler extends TextWebSocketHandler {
 
       //해당 방의 세션들만 찾아서 메시지를 발송해준다.
       for (String k : temp.keySet()) {
-        if (k.equals("roomId")) { //다만 방번호일 경우에는 건너뛴다.
-          continue;
-        }
+        Boolean doNotSend = k.equals("roomId")          //방 고유 값
+                          || k.equals("adminSession")   //방장 아이디
+                          || k.equals("memberList")     //맴버 정보
+                          || k.equals("memberCount")    //방 인원 수
+                          || k.equals("roomStatus");    //방 상태 값
 
-        if (k.equals("adminSession") || k.equals("memberList") || k.equals("memberCount")) { //다만 방번호일 경우에는 건너뛴다.
+        if (doNotSend) { //방 정보 통과
           continue;
         }
 
