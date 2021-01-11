@@ -164,6 +164,16 @@ function wsEvt() {
               + jsonTemp.msg + "</p>");
           $("#chating").scrollTop($("#chating")[0].scrollHeight);
         }
+      } else if (jsonTemp.type == "showyourjob"){
+        console.log(jsonTemp.msg);
+        var jobs = jsonTemp.msg;
+        var userId = $("#userId").val();
+        var result = determineJob(jobs,userId);
+        $("#chating").append(
+            "<p class='show-your-job' style='color:"+result.chatColor+";'>당신의 직업은 "+result.yourJob+" 입니다.</p>"
+        );
+      } else if (jsonTemp.type == "timeCountDown"){
+        $("#announce").text(jsonTemp.msg);
       } else {
         console.warn("unknown type!")
       }
@@ -236,9 +246,15 @@ function backToRoomList() {
 
 function startGame() {
   var roomId = {roomId: $('#roomId').val()};
-  commonAjax('/setRoomStart', roomId, 'post', function () {
-    $("#startBtn").remove();
-  });
+  var memberCnt = $(".member").length;
+  if (memberCnt<8) {
+    $("#chating").append("<p class='game-not-start' style='color:white;'>게임 시작에는 8명 이상이 필요합니다!</p>");
+  } else {
+    commonAjax('/setRoomStart', roomId, 'post', function () {
+      $("#startBtn").remove();
+    });
+    showYourJob();
+  }
 
   var option;
   option = {
@@ -251,10 +267,11 @@ function startGame() {
 // 타이머 function
 
 // Set the date we're counting down to
-function timer() {
+function timer(min,sec,type) {
 
   var countDownDate = new Date();
-  countDownDate.setMinutes(countDownDate.getMinutes() + 5);
+  countDownDate.setMinutes(countDownDate.getMinutes() + min);
+  countDownDate.setSeconds(countDownDate.getSeconds() + sec);
 
 // Update the count down every 1 second
   var x = setInterval(function () {
@@ -264,7 +281,6 @@ function timer() {
 
     // Find the distance between now and the count down date
     var distance = countDownDate - now;
-
     // Time calculations for days, hours, minutes and seconds
     // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
     // var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -272,17 +288,25 @@ function timer() {
     var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
     // Display the result in the element with id="demo"
-    document.getElementById("announce").innerHTML = "낮시간 " + minutes + "분 "
+    var announce = type + "시간 " + minutes + "분 "
         + seconds + "초 남았습니다.";
-
+    var option = {
+      type: "timeCountDown",
+      roomNumber: $("#roomNumber").val(),
+      roomId: $("#roomId").val(),
+      sessionId: $("#sessionId").val(),
+      userId: $("#userId").val(),
+      msg: announce
+    };
     // If the count down is finished, write some text
     if (distance < 0) {
       clearInterval(x);
       document.getElementById("announce").innerHTML = "EXPIRED";
       voteOpen();
+    } else {
+      socketVar.send(JSON.stringify(option));
     }
   }, 1000);
-
 }
 
 function commonAjax(url, parameter, type, calbak, contentType) {
@@ -327,6 +351,62 @@ function unload() {
       alert("다른사이트로 이동");
     }
   }
+}
+
+function showYourJob() {
+  var request = new XMLHttpRequest();
+  request.onload = function () {
+    if (request.status == 200) {
+      var str = request.responseText;
+      var jobs = JSON.parse(str);
+      var option;
+      option = {
+        type: "showyourjob",
+        roomNumber: $("#roomNumber").val(),
+        roomId: $("#roomId").val(),
+        sessionId: $("#sessionId").val(),
+        userId: $("#userId").val(),
+        msg: jobs
+      };
+      socketVar.send(JSON.stringify(option));
+    }
+  }
+  request.open('GET',"/startGame/"+$("#roomId").val(),true);
+  request.send();
+}
+
+var determineJob = function(jobs, userId) {
+  var yourJob = "";
+  var chatColor = "white";
+  for (var i in jobs) {
+    console.log(jobs[i].name+" "+userId);
+    if (jobs[i].name == userId) {
+      yourJob = jobs[i].job;
+      if (yourJob == "mafia") {
+        chatColor = "red";
+      }
+      break;
+    }
+  }
+  return {
+    yourJob : yourJob,
+    chatColor : chatColor
+  };
+};
+
+function gameProcess() {
+  morning();
+  election();
+  execution();
+  night();
+}
+
+function morning() {
+  timer(5,0,"낮");
+}
+
+function election() {
+
 }
 
 function voteOpen() {
