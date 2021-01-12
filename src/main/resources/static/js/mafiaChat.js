@@ -182,6 +182,10 @@ function wsEvt() {
         );
       } else if (jsonTemp.type == "timeCountDown"){
         $("#announce").text(jsonTemp.msg);
+      } else if (jsonTemp.type == "moderator") { //moderator : 사회자
+        $("#chating").append(
+            "<p class='moderator' style='color:white;'>"+jsonTemp.msg+"</p>"
+        );
       } else {
         console.warn("unknown type!")
       }
@@ -255,14 +259,20 @@ function backToRoomList() {
 function startGame() {
   var roomId = {roomId: $('#roomId').val()};
   var memberCnt = $(".member").length;
-  if (memberCnt<8) {
+  //테스트 위해서 8명 이하여도 게임 시작되게 임시로 수정
+  /*if (memberCnt<8) {
     $("#chating").append("<p class='game-not-start' style='color:white;'>게임 시작에는 8명 이상이 필요합니다!</p>");
   } else {
     commonAjax('/setRoomStart', roomId, 'post', function () {
       $("#startBtn").remove();
     });
     showYourJob();
-  }
+  }*/
+
+  commonAjax('/setRoomStart', roomId, 'post', function () {
+    $("#startBtn").remove();
+  });
+  showYourJob();
 
   var option;
   option = {
@@ -411,6 +421,15 @@ function gameProcess() {
 
 function morning() {
   timer(5,0,"낮");
+  option = {
+    type: "moderator",
+    roomNumber: $("#roomNumber").val(),
+    roomId: $("#roomId").val(),
+    sessionId: $("#sessionId").val(),
+    userId: $("#userId").val(),
+    msg: "낮이 다되었습니다. 투표를 해주세요"
+  };
+  socketVar.send(JSON.stringify(option));
 }
 
 function election() {
