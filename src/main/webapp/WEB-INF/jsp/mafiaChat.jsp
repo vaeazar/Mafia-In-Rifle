@@ -74,6 +74,7 @@
     <div class="voteList" id="voteList">
         <div class="voteList-content">
             <span class="voteList-close">&times;</span>
+            <p>투표 할 인원을 클릭해주세요</p>
             <p id="memberNameBtn">Some text in the Modal..</p>
         </div>
     </div>

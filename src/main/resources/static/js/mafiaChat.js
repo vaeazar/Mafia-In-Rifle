@@ -80,7 +80,7 @@ function wsEvt() {
         $("#memberList").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "resultEqual") {
         $("#chating").append(
-            "<p class='newMemberJoin'>투표결과 동률로 처형되지 않습니다.</p>");
+            "<p class='newMemberJoin'>투표결과 아무도 처형되지 않습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "excecuteComplete") {
         $("#chating").append(
@@ -419,13 +419,16 @@ function election() {
 function voteOpen() {
   let roomId = {roomId: $('#roomId').val()};
   commonAjax('/getMemberNames', roomId, 'post', function (result) {
-    console.log(result);
     let tempJson = JSON.parse(result);
     let tempList = tempJson.memberList;
     let btnHtml = '';
     tempList.forEach(function (e,i,a) {
-      btnHtml += "<button onclick='playerClick()' id='"+e+"' class='voteBtn'>"+e+"</button>";
+      btnHtml += "<button onclick='playerClick(\""+e+"\")' class='voteBtn'>"+e+"</button>";
     });
     $('#memberNameBtn').html(btnHtml);
   });
+}
+
+function playerClick(selectPlayerName) {
+  console.log(selectPlayerName + ' : 날 죽이지 마세요...');
 }
