@@ -74,7 +74,7 @@
     <div class="voteList" id="voteList">
         <div class="voteList-content">
             <span class="voteList-close">&times;</span>
-            <p>Some text in the Modal..</p>
+            <p id="memberNameBtn">Some text in the Modal..</p>
         </div>
     </div>
 </div>

@@ -47,6 +47,7 @@ public class SocketHandler extends TextWebSocketHandler {
 
       String jsonGetType = (String) obj.get("type");
       String jsonGetRoomId = (String) obj.get("roomId");
+      String jsonGetSessionId = (String) obj.get("sessionId");
       HashMap<String, Object> temp = new HashMap<>();
       if (jsonGetType.equals("jobSave")) {
         HashMap<String, String> jobSave = new HashMap<>();
@@ -79,10 +80,12 @@ public class SocketHandler extends TextWebSocketHandler {
         startObj.put("type", "roomIsStart");
         messageSend(jsonGetRoomId, startObj);
       } else if (rls.size() > 0) {
+        String senderAlive = "";
         for (int i = 0; i < rls.size(); i++) {
           String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
           if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
             temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+            senderAlive = StringUtils.isEmpty(temp.get(jsonGetSessionId + "_status")) == true ? "zombie" : temp.get(jsonGetSessionId+"_status").toString();
             break;
           }
         }
@@ -93,9 +96,16 @@ public class SocketHandler extends TextWebSocketHandler {
                             || k.equals("adminSession")   //방장 아이디
                             || k.equals("memberList")     //맴버 정보
                             || k.equals("memberCount")    //방 인원 수
+                            || k.contains("_status")      //플레이어 상태 값
                             || k.equals("roomStatus");    //방 상태 값
 
           if (doNotSend) { //방 정보 통과
+            continue;
+          }
+
+          String playerStatus = StringUtils.isEmpty(temp.get(k + "_status")) == true ? "zombie" : temp.get(k+"_status").toString();
+
+          if (senderAlive.equals("zombie") && !playerStatus.equals("zombie")) {
             continue;
           }
 
@@ -187,6 +197,7 @@ public class SocketHandler extends TextWebSocketHandler {
       List<String> memberNames = new ArrayList<>(memberList.keySet());
       listObj.put("memberList", memberNames);
       map.put(session.getId(), session);
+      map.put(session.getId() + "_status", "alive");
       map.put("memberList", memberList);
       map.put("memberCount", ++memberCount);
     } else {
@@ -289,6 +300,23 @@ public class SocketHandler extends TextWebSocketHandler {
     return new HashMap<>();
   }
 
+  public List<String> getMemberNames(String roomId) {
+    if (rls.size() > 0) {
+      for (int i = 0; i < rls.size(); i++) {
+        String getRoomId = (String) rls.get(i).get("roomId");
+        if (getRoomId.equals(roomId)) {
+          List<String> memberNameList = new ArrayList<>();
+          HashMap<String, String> memberList = (HashMap<String, String>) rls.get(i).get("memberList");
+          for (String memberName : memberList.keySet()) {
+            memberNameList.add(memberName);
+          }
+          return memberNameList;
+        }
+      }
+    }
+    return new ArrayList<>();
+  }
+
   private static JSONObject jsonToObjectParser(String jsonStr) {
     JSONParser parser = new JSONParser();
     JSONObject obj = null;
@@ -350,6 +378,7 @@ public class SocketHandler extends TextWebSocketHandler {
                           || k.equals("adminSession")   //방장 아이디
                           || k.equals("memberList")     //맴버 정보
                           || k.equals("memberCount")    //방 인원 수
+                          || k.contains("_status")      //플레이어 상태 값
                           || k.equals("roomStatus");    //방 상태 값
 
         if (doNotSend) { //방 정보 통과
@@ -402,5 +431,41 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     return jobList;
+  }
+
+  public void cutOffHerHead(String jsonGetRoomId, String userName, Boolean resultEqual) {
+    try {
+      HashMap<String, Object> temp = new HashMap<>();
+
+      int idx = -1;
+      for (int i = 0; i < rls.size(); i++) {
+        String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
+        if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+          temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+          idx = i;
+          break;
+        }
+      }
+
+      if (idx != -1) {
+        HashMap<String, String> memberList = (HashMap<String, String>) temp.get("memberList");
+        String excecutedPlayer = memberList.get(userName) + "_status";
+        temp.put(excecutedPlayer,"zombie");
+        rls.set(idx,temp);
+      }
+
+      if (resultEqual) {
+        JSONObject sendObj = new JSONObject();
+        sendObj.put("type", "resultEqual");
+        messageSend(jsonGetRoomId, sendObj);
+      } else {
+        JSONObject sendObj = new JSONObject();
+        sendObj.put("type", "excecuteComplete");
+        sendObj.put("memberName", userName);
+        messageSend(jsonGetRoomId, sendObj);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

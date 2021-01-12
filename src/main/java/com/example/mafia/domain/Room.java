@@ -12,4 +12,5 @@ public class Room {
   int roomCount;
   Boolean roomStatus;
   HashMap<String, Integer> votes;
+  HashMap<String, Integer> zombie;
 }

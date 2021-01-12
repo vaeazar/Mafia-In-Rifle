@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var span = document.getElementsByClassName("voteList-close")[0];
 
   btn.onclick = function() {
+    voteOpen();
     modal.style.display = "block";
   }
 

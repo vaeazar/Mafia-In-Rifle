@@ -78,6 +78,14 @@ function wsEvt() {
         });
         $("#memberList").html(memberListTag);
         $("#memberList").scrollTop($("#chating")[0].scrollHeight);
+      } else if (jsonTemp.type == "resultEqual") {
+        $("#chating").append(
+            "<p class='newMemberJoin'>투표결과 동률로 처형되지 않습니다.</p>");
+        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+      } else if (jsonTemp.type == "excecuteComplete") {
+        $("#chating").append(
+            "<p class='newMemberJoin'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 처형당했습니다.</p>");
+        $("#chating").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "adminLeft") {
         if (jsonTemp.isAdmin) {
           $("#chatRoomHeader").append(
@@ -408,7 +416,16 @@ function morning() {
 function election() {
 
 }
-
 function voteOpen() {
-
+  let roomId = {roomId: $('#roomId').val()};
+  commonAjax('/getMemberNames', roomId, 'post', function (result) {
+    console.log(result);
+    let tempJson = JSON.parse(result);
+    let tempList = tempJson.memberList;
+    let btnHtml = '';
+    tempList.forEach(function (e,i,a) {
+      btnHtml += "<button onclick='playerClick()' id='"+e+"' class='voteBtn'>"+e+"</button>";
+    });
+    $('#memberNameBtn').html(btnHtml);
+  });
 }
