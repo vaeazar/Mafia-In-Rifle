@@ -1,9 +1,12 @@
 package com.example.mafia.controller;
 
 import com.example.mafia.domain.Room;
+import com.example.mafia.domain.Vote;
 import com.example.mafia.handler.SocketHandler;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -221,6 +221,107 @@ public class MainController {
       return "deleteComplete";
     } catch (Exception e) {
       return "deleteFail";
+    }
+  }
+
+  @RequestMapping("/startGame/{id}")
+  public @ResponseBody
+  ArrayList<Map<String, String>> startGame(@PathVariable("id") String roomId) {
+    ArrayList<Map<String, String>> jobs = new ArrayList<>();
+    for (int i=0;i<roomList.size();i++) {
+      String getRoomId = roomList.get(i).getRoomId();
+      if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+        jobs = socketHandler.giveJobs(roomId);
+      }
+    }
+    return jobs;
+  }
+
+  @RequestMapping("/getMemberNames")
+  public @ResponseBody
+  String getMemberNames(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    JSONObject memberListString = new JSONObject();
+
+    if (roomId.equals("")) {
+      return memberListString.toJSONString();
+    }
+    List<String> memberList = socketHandler.getMemberNames(roomId);
+    try {
+      if (memberList == null) memberList = new ArrayList<>();
+      memberListString.put("memberList",memberList);
+      return memberListString.toJSONString();
+    } catch (Exception e) {
+      memberListString.put("memberList",new ArrayList<>());
+      return memberListString.toJSONString();
+    }
+  }
+
+  @RequestMapping("/BBalGangEDa")
+  public @ResponseBody
+  String BBalGangEDa(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    String playerId = StringUtils.isEmpty(params.get("playerId")) == true ? "" : params.get("playerId").toString();
+
+    try {
+      for(int i=0; i<roomList.size(); i++) {
+        String getRoomId = roomList.get(i).getRoomId();
+        if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          if (CollectionUtils.isEmpty(votes)) {
+            votes = new HashMap<>();
+            votes.put(playerId,1);
+          } else if (votes.get(playerId) == null){
+            votes.put(playerId,1);
+          } else {
+            votes.put(playerId, votes.get(playerId) + 1);
+          }
+          roomList.get(i).setVotes(votes);
+          break;
+        }
+      }
+      return "voteComplete";
+    } catch (Exception e) {
+      return "voteFail";
+    }
+  }
+
+  @RequestMapping("/cutOffHerHead")
+  public @ResponseBody
+  String cutOffHerHead(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    try {
+      int userCount = 0;
+      String userName = "";
+      Boolean resultEqual = true;
+      for(int i=0; i<roomList.size(); i++) {
+        String getRoomId = roomList.get(i).getRoomId();
+        if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          if (CollectionUtils.isEmpty(votes)) {
+            socketHandler.cutOffHerHead(roomId, userName, resultEqual);
+            break;
+          }
+          Iterator<String> keys = votes.keySet().iterator();
+          while( keys.hasNext() ){
+            String key = keys.next();
+            if (userCount < votes.get(key)) {
+              userCount = votes.get(key);
+              userName = key;
+              resultEqual = false;
+            } else if (userCount == votes.get(key)) {
+              resultEqual = true;
+            }
+          }
+          socketHandler.cutOffHerHead(roomId, userName, resultEqual);
+          votes = new HashMap<>();
+          roomList.get(i).setVotes(votes);
+          break;
+        }
+      }
+      return "executed";
+    } catch (Exception e) {
+      return "executeFail";
     }
   }
 }

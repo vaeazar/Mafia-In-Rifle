@@ -10,6 +10,7 @@
     <title>Chating</title>
     <link rel="stylesheet" href="/css/mafiaChat.css">
     <script src="/js/mafiaChat.js"></script>
+    <script src="/js/gamePlay.js"></script>
 </head>
 <body onunload="unload()">
 <div id="container" class="container">
@@ -41,12 +42,18 @@
     </div>
     <div id="yourMsg">
         <table class="inputTable">
-            <tr>
+            <tr id="uiBtn">
                 <th id="mafiaChatTh">마피아 챗</th>
                 <td id="mafiaChatTd"><input type="checkbox" id="mafiaChat"></td>
                 <td>메시지</td>
                 <td><input id="chatting" class="chatting-input" placeholder="보내실 메시지를 입력하세요."></td>
                 <td><button onclick="send()" id="sendBtn">보내기</button></td>
+            </tr>
+        </table>
+        <table class="inputTable">
+            <tr>
+                <td>메뉴</td>
+                <td><button onclick="cleanChatSpace()">모든 채팅 삭제</button></td>
                 <td><button onclick="backToRoomList()" id="backBtn">나가기</button></td>
             </tr>
         </table>
@@ -69,8 +76,13 @@
             </tr>
         </table>
     </div>
+    <div class="voteList" id="voteList" onclick="closeVoteList()">
+        <div class="voteList-content">
+            <span class="voteList-close">&times;</span>
+            <p>투표 할 인원을 클릭해주세요</p>
+            <p id="memberNameBtn">Some text in the Modal..</p>
+        </div>
+    </div>
 </div>
-
-
 </body>
 </html>

@@ -19,12 +19,14 @@ function errorMessage() {
     if (typeof (history.pushState) != "undefined") { //브라우저가 지원하는 경우
       Swal.fire({
         icon: 'error',
+        allowOutsideClick: false,
         text: errorMessage
       });
       history.pushState('', '', 'room');
     } else {
       Swal.fire({
         icon: 'error',
+        allowOutsideClick: false,
         text: errorMessage
       }, function (isConfirm) {
         if (isConfirm) {
@@ -32,7 +34,6 @@ function errorMessage() {
         } else {
           location.href = url; //브라우저가 지원하지 않는 경우 페이지 이동처리
         }
-
       });
     }
   }
