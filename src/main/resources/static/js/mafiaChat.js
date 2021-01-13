@@ -60,9 +60,12 @@ function wsEvt() {
         if (sessionId != '') {
           $("#sessionId").val(sessionId);
         }
+        let tempHtml = '';
+        tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
+        tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
+        tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
         if (jsonTemp.isAdmin) {
-          $("#chatRoomHeader").append(
-              "<button onclick='startGame()' id='startBtn' class='startBtn'>시작</button>");
+          $("#chatRoomHeader").append(tempHtml);
         }
       } else if (jsonTemp.type == "memberList") {
         let chatColor = $('input[name=othersChatColor]:checked').val();
@@ -80,19 +83,28 @@ function wsEvt() {
         $("#memberList").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "resultEqual") {
         $("#chating").append(
-            "<p class='newMemberJoin'>투표결과 아무도 처형되지 않습니다.</p>");
+            "<p class='newMemberJoin' style='color:red;'>투표결과 아무도 처형되지 않습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "excecuteComplete") {
         $("#chating").append(
-            "<p class='newMemberJoin'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 처형당했습니다.</p>");
+            "<p class='newMemberJoin' style='color:red;'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 처형당했습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "adminLeft") {
+        let tempHtml = '';
+        tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
+        tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
+        tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
         if (jsonTemp.isAdmin) {
-          $("#chatRoomHeader").append(
-              "<button onclick='startGame()' id='startBtn' class='startBtn'>시작</button>");
+          $("#chatRoomHeader").append(tempHtml);
         }
       } else if (jsonTemp.type == "roomIsStart") {
         timer();
+      } else if (jsonTemp.type == "voteStarted") {
+        let tempHtml = '';
+        tempHtml += '<td><button id="modalBtn" onclick="tempVoteClick()">투표</button></td>';
+        $("#uiBtn").append(tempHtml);
+        $("#chating").append(
+            "<p class='newMemberJoin' style='color:red;'>처형 투표가 시작되었습니다.</p>");
       } else if (jsonTemp.type == "fail") {
         if (jsonTemp.failReason == 'nameExist') {
           $("#yourMsg").hide();
@@ -449,5 +461,36 @@ function voteOpen() {
 }
 
 function playerClick(selectPlayerName) {
-  console.log(selectPlayerName + ' : 날 죽이지 마세요...');
+  let param = {
+    roomId : $('#roomId').val(),
+    playerId : selectPlayerName
+  };
+  let btnHtml = '';
+  commonAjax('/BBalGangEDa', param, 'post', function () {
+    btnHtml += "<p>"+selectPlayerName+"님을 선택하셨습니다.</p>";
+    $('#memberNameBtn').html(btnHtml);
+    $('#modalBtn').remove();
+  });
+}
+
+function tempKillBtn() {
+  let param = {
+    roomId : $('#roomId').val()
+  };
+  commonAjax('/cutOffHerHead', param, 'post', function () {
+    console.log('처형 완료');
+  });
+}
+
+function voteStart() {
+  var option;
+  option = {
+    type: "voteStart",
+    roomId: $('#roomId').val()
+  }
+  socketVar.send(JSON.stringify(option));
+}
+
+function cleanChatSpace() {
+  $('#chating').html('');
 }

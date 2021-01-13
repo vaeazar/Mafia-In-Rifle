@@ -12,6 +12,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.CloseStatus;
@@ -79,6 +80,24 @@ public class SocketHandler extends TextWebSocketHandler {
         JSONObject startObj = new JSONObject();
         startObj.put("type", "roomIsStart");
         messageSend(jsonGetRoomId, startObj);
+      } else if (jsonGetType.equals("voteStart")) {
+        int idx = -1;
+        for (int i = 0; i < rls.size(); i++) {
+          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
+          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+            idx = i;
+            break;
+          }
+        }
+        temp.put("voteStatus","start");
+        if (idx != -1) {
+          rls.set(idx,temp);
+        }
+
+        JSONObject startObj = new JSONObject();
+        startObj.put("type", "voteStarted");
+        messageSend(jsonGetRoomId, startObj);
       } else if (rls.size() > 0) {
         String senderAlive = "";
         for (int i = 0; i < rls.size(); i++) {
@@ -97,6 +116,7 @@ public class SocketHandler extends TextWebSocketHandler {
                             || k.equals("memberList")     //맴버 정보
                             || k.equals("memberCount")    //방 인원 수
                             || k.contains("_status")      //플레이어 상태 값
+                            || k.equals("voteStatus")      //플레이어 상태 값
                             || k.equals("roomStatus");    //방 상태 값
 
           if (doNotSend) { //방 정보 통과
@@ -379,6 +399,7 @@ public class SocketHandler extends TextWebSocketHandler {
                           || k.equals("memberList")     //맴버 정보
                           || k.equals("memberCount")    //방 인원 수
                           || k.contains("_status")      //플레이어 상태 값
+                          || k.equals("voteStatus")      //플레이어 상태 값
                           || k.equals("roomStatus");    //방 상태 값
 
         if (doNotSend) { //방 정보 통과
@@ -436,6 +457,7 @@ public class SocketHandler extends TextWebSocketHandler {
   public void cutOffHerHead(String jsonGetRoomId, String userName, Boolean resultEqual) {
     try {
       HashMap<String, Object> temp = new HashMap<>();
+      Boolean excecutedFlag = resultEqual;
 
       int idx = -1;
       for (int i = 0; i < rls.size(); i++) {
@@ -449,12 +471,16 @@ public class SocketHandler extends TextWebSocketHandler {
 
       if (idx != -1) {
         HashMap<String, String> memberList = (HashMap<String, String>) temp.get("memberList");
-        String excecutedPlayer = memberList.get(userName) + "_status";
-        temp.put(excecutedPlayer,"zombie");
-        rls.set(idx,temp);
+        if (StringUtils.isEmpty(memberList.get(userName))) {
+          excecutedFlag = true;
+        } else {
+          String excecutedPlayer = memberList.get(userName) + "_status";
+          temp.put(excecutedPlayer,"zombie");
+          rls.set(idx,temp);
+        }
       }
 
-      if (resultEqual) {
+      if (excecutedFlag) {
         JSONObject sendObj = new JSONObject();
         sendObj.put("type", "resultEqual");
         messageSend(jsonGetRoomId, sendObj);

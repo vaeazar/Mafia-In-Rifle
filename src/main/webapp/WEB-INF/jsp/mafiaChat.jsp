@@ -42,14 +42,19 @@
     </div>
     <div id="yourMsg">
         <table class="inputTable">
-            <tr>
+            <tr id="uiBtn">
                 <th id="mafiaChatTh">마피아 챗</th>
                 <td id="mafiaChatTd"><input type="checkbox" id="mafiaChat"></td>
                 <td>메시지</td>
                 <td><input id="chatting" class="chatting-input" placeholder="보내실 메시지를 입력하세요."></td>
                 <td><button onclick="send()" id="sendBtn">보내기</button></td>
+            </tr>
+        </table>
+        <table class="inputTable">
+            <tr>
+                <td>메뉴</td>
+                <td><button onclick="cleanChatSpace()">모든 채팅 삭제</button></td>
                 <td><button onclick="backToRoomList()" id="backBtn">나가기</button></td>
-                <td><button id="modalBtn">투표</button></td>
             </tr>
         </table>
         <table class="chatColorTable">
@@ -71,7 +76,7 @@
             </tr>
         </table>
     </div>
-    <div class="voteList" id="voteList">
+    <div class="voteList" id="voteList" onclick="closeVoteList()">
         <div class="voteList-content">
             <span class="voteList-close">&times;</span>
             <p>투표 할 인원을 클릭해주세요</p>
@@ -79,7 +84,5 @@
         </div>
     </div>
 </div>
-
-
 </body>
 </html>

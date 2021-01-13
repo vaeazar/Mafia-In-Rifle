@@ -257,15 +257,21 @@ public class MainController {
     }
   }
 
-  @RequestMapping("/BBalGangEDa/{roomId}/{voteId}")
+  @RequestMapping("/BBalGangEDa")
   public @ResponseBody
-  String BBalGangEDa(@PathVariable("roomId") String roomId,@PathVariable("voteId") String playerId) {
+  String BBalGangEDa(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    String playerId = StringUtils.isEmpty(params.get("playerId")) == true ? "" : params.get("playerId").toString();
+
     try {
       for(int i=0; i<roomList.size(); i++) {
         String getRoomId = roomList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
           HashMap<String, Integer> votes = roomList.get(i).getVotes();
           if (CollectionUtils.isEmpty(votes)) {
+            votes = new HashMap<>();
+            votes.put(playerId,1);
+          } else if (votes.get(playerId) == null){
             votes.put(playerId,1);
           } else {
             votes.put(playerId, votes.get(playerId) + 1);
@@ -282,17 +288,20 @@ public class MainController {
 
   @RequestMapping("/cutOffHerHead")
   public @ResponseBody
-  String cutOffHerHead(@PathVariable("roomId") String roomId) {
+  String cutOffHerHead(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
     try {
       int userCount = 0;
       String userName = "";
-      Boolean resultEqual = false;
+      Boolean resultEqual = true;
       for(int i=0; i<roomList.size(); i++) {
         String getRoomId = roomList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
           HashMap<String, Integer> votes = roomList.get(i).getVotes();
-          votes.forEach((key, value) -> {
-          });
+          if (CollectionUtils.isEmpty(votes)) {
+            socketHandler.cutOffHerHead(roomId, userName, resultEqual);
+            break;
+          }
           Iterator<String> keys = votes.keySet().iterator();
           while( keys.hasNext() ){
             String key = keys.next();

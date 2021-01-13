@@ -8,7 +8,7 @@
     letter-spacing: 1px;
 }
 .container{
-    width: 40em;
+    width: 37em;
     margin: 0 auto;
     padding: 25px;
 }
@@ -129,6 +129,7 @@
     padding: 20px;
     border: 1px solid #888;
     width: 50%; /* Could be more or less, depending on screen size */
+    z-index: 2;
 }
 /* The Close Button */
 .voteList-close {
