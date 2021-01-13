@@ -99,6 +99,7 @@ function wsEvt() {
         $("#chating").append(
             "<p class='newMemberJoin' style='color:red;'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 처형당했습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        $('#modalBtn').remove();
       } else if (jsonTemp.type == "adminLeft") {
         let tempHtml = '';
         tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
@@ -110,11 +111,13 @@ function wsEvt() {
       } else if (jsonTemp.type == "roomIsStart") {
         timer();
       } else if (jsonTemp.type == "voteStarted") {
+        $('#modalBtn').remove();
         let tempHtml = '';
         tempHtml += '<td><button id="modalBtn" onclick="tempVoteClick()">투표</button></td>';
         $("#uiBtn").append(tempHtml);
         $("#chating").append(
             "<p class='newMemberJoin' style='color:red;'>처형 투표가 시작되었습니다.</p>");
+        $("#chating").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "fail") {
         if (jsonTemp.failReason == 'nameExist') {
           $("#yourMsg").hide();
