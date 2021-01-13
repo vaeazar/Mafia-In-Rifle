@@ -69,14 +69,24 @@ function wsEvt() {
         }
       } else if (jsonTemp.type == "memberList") {
         let chatColor = $('input[name=othersChatColor]:checked').val();
-        console.log(jsonTemp.newMemberName);
         $("#chating").append(
             "<p class='newMemberJoin'>" + decodeURI(jsonTemp.newMemberName,'UTF-8') + " 님께서 입장하셨습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
         let memberList = jsonTemp.memberList;
         let memberListTag = '';
         memberList.forEach(function(item,index,arr) {
-          console.log(jsonTemp.item);
+          memberListTag += "<p class='member'>" + decodeURI(item,'UTF-8') + "</p>";
+        });
+        $("#memberList").html(memberListTag);
+        $("#memberList").scrollTop($("#chating")[0].scrollHeight);
+      } else if (jsonTemp.type == "memberOut") {
+        let chatColor = $('input[name=othersChatColor]:checked').val();
+        $("#chating").append(
+            "<p class='newMemberJoin'>" + decodeURI(jsonTemp.outMemberName,'UTF-8') + " 님께서 퇴장하셨습니다.</p>");
+        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        let memberList = jsonTemp.memberList;
+        let memberListTag = '';
+        memberList.forEach(function(item,index,arr) {
           memberListTag += "<p class='member'>" + decodeURI(item,'UTF-8') + "</p>";
         });
         $("#memberList").html(memberListTag);

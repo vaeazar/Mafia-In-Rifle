@@ -212,7 +212,6 @@ public class SocketHandler extends TextWebSocketHandler {
       }
       listObj.put("type", "memberList");
       listObj.put("newMemberName", userName);
-      listObj.put("failMessage", "존재하지 않는 방입니다.");
       memberList.put(userName, session.getId());
       List<String> memberNames = new ArrayList<>(memberList.keySet());
       listObj.put("memberList", memberNames);
@@ -251,29 +250,38 @@ public class SocketHandler extends TextWebSocketHandler {
     //소켓 종료
     //sessionMap.remove(session.getId());
     JSONObject obj = new JSONObject();
+    JSONObject adminObj = new JSONObject();
     //소켓 종료
     if (rls.size() > 0) { //소켓이 종료되면 해당 세션값들을 찾아서 지운다.
       for (int i = 0; i < rls.size(); i++) {
         if (rls.get(i).get(session.getId()) != null) {
           HashMap<String, Object> map = rls.get(i);
           int memberCount = (int) map.get("memberCount");
+          String roomId = (String) map.get("roomId");
           HashMap<String, String> memberList = (HashMap<String, String>) map.get("memberList");
           Boolean isAdmin = checkAdmin((String) map.get("adminSession"), session.getId());
-          memberList.remove(getKey(memberList, session.getId()));
+          String outMemberName = (String) getKey(memberList, session.getId());
+          memberList.remove(outMemberName);
           map.put("memberCount", --memberCount);
           map.put("memberList", memberList);
           Object tempKey = getFirstKey(memberList);
           String roomStatus = ObjectUtils.isEmpty(map.get("roomStatus")) == true ? "wait" : map.get("roomStatus").toString();
           if (tempKey != null) {
+            String sessionKey = memberList.get(tempKey);
+            WebSocketSession wss = (WebSocketSession) map.get(sessionKey);
             if (isAdmin && roomStatus.equals("wait")) {
-              String sessionKey = memberList.get(tempKey);
-              WebSocketSession wss = (WebSocketSession) map.get(sessionKey);
-              obj.put("type", "adminLeft");
-              obj.put("isAdmin", true);
-              wss.sendMessage(new TextMessage(obj.toJSONString()));
+              adminObj.put("type", "adminLeft");
+              adminObj.put("isAdmin", true);
+              wss.sendMessage(new TextMessage(adminObj.toJSONString()));
               map.put("adminSession", sessionKey);
             }
             map.remove(session.getId());
+            map.remove(session.getId() + "_status");
+            obj.put("type", "memberOut");
+            obj.put("outMemberName", outMemberName);
+            List<String> memberNames = new ArrayList<>(memberList.keySet());
+            obj.put("memberList", memberNames);
+            messageSend(roomId,obj);
             rls.set(i, map);
           } else {
             if (!StringUtils.isEmpty(rls.get(i).get(session.getId()))) {
@@ -325,10 +333,15 @@ public class SocketHandler extends TextWebSocketHandler {
       for (int i = 0; i < rls.size(); i++) {
         String getRoomId = (String) rls.get(i).get("roomId");
         if (getRoomId.equals(roomId)) {
+          HashMap<String, Object> temp = rls.get(i);
           List<String> memberNameList = new ArrayList<>();
           HashMap<String, String> memberList = (HashMap<String, String>) rls.get(i).get("memberList");
           for (String memberName : memberList.keySet()) {
-            memberNameList.add(memberName);
+            String memberId = memberList.get(memberName);
+            Boolean aliveFlag = !StringUtils.isEmpty(temp.get(memberId + "_status")) && temp.get(memberId + "_status").toString().equals("alive");
+            if (aliveFlag) {
+              memberNameList.add(memberName);
+            }
           }
           return memberNameList;
         }
