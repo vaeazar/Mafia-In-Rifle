@@ -108,8 +108,6 @@ function wsEvt() {
         if (jsonTemp.isAdmin) {
           $("#chatRoomHeader").append(tempHtml);
         }
-      } else if (jsonTemp.type == "roomIsStart") {
-        timer();
       } else if (jsonTemp.type == "voteStarted") {
         $('#modalBtn').remove();
         let tempHtml = '';
@@ -205,6 +203,7 @@ function wsEvt() {
         $("#chating").append(
             "<p class='show-your-job' style='color:"+result.chatColor+";'>당신의 직업은 "+result.yourJob+" 입니다.</p>"
         );
+        $("#myJob").val(result.yourJob);
       } else if (jsonTemp.type == "timeCountDown"){
         $("#announce").text(jsonTemp.msg);
       } else if (jsonTemp.type == "moderator") { //moderator : 사회자
@@ -285,25 +284,15 @@ function startGame() {
   var roomId = {roomId: $('#roomId').val()};
   var memberCnt = $(".member").length;
   //테스트 위해서 8명 이하여도 게임 시작되게 임시로 수정
-  /*if (memberCnt<8) {
+  if (memberCnt<8) {
     $("#chating").append("<p class='game-not-start' style='color:white;'>게임 시작에는 8명 이상이 필요합니다!</p>");
   } else {
     commonAjax('/setRoomStart', roomId, 'post', function () {
       $("#startBtn").remove();
     });
     showYourJob();
-  }*/
-
-  commonAjax('/setRoomStart', roomId, 'post', function () {
-    $("#startBtn").remove();
-  });
-  showYourJob();
-
-  var option;
-  option = {
-    type: "roomIsStart",
-    roomId: $('#roomId').val()
   }
+
   socketVar.send(JSON.stringify(option));
 }
 
@@ -345,7 +334,6 @@ function timer(min,sec,type) {
     if (distance < 0) {
       clearInterval(x);
       document.getElementById("announce").innerHTML = "EXPIRED";
-      voteOpen();
     } else {
       socketVar.send(JSON.stringify(option));
     }
@@ -416,6 +404,8 @@ function showYourJob() {
   }
   request.open('GET',"/startGame/"+$("#roomId").val(),true);
   request.send();
+
+  gameProcess();
 }
 
 var determineJob = function(jobs, userId) {
