@@ -63,8 +63,11 @@ function wsEvt() {
         }
         let tempHtml = '';
         tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
+        tempHtml += '<button onclick="startGameMafia()" id="startBtn" class="startBtn">마피아 식별용 시작</button>';
         tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
         tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
+        tempHtml += '<td><button onclick="mafiaVote()">마피아 개시</button></td>';
+        tempHtml += '<td><button onclick="tempMafiaKillBtn()">마피아 처형</button></td>';
         if (jsonTemp.isAdmin) {
           $("#chatRoomHeader").append(tempHtml);
         }
@@ -111,6 +114,7 @@ function wsEvt() {
       } else if (jsonTemp.type == "adminLeft") {
         let tempHtml = '';
         tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
+        tempHtml += '<button onclick="startGameMafia()" id="startBtn" class="startBtn">마피아 식별용 시작</button>';
         tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
         tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
         tempHtml += '<td><button onclick="mafiaVote()">마피아 개시</button></td>';
