@@ -257,6 +257,36 @@ public class MainController {
     }
   }
 
+  @RequestMapping("/getCivilNames")
+  public @ResponseBody
+  String getCivilNames(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    JSONObject memberListString = new JSONObject();
+    List<String> mafia = new ArrayList<>();
+
+    if (roomId.equals("")) {
+      return memberListString.toJSONString();
+    }
+    for(int i=0; i<roomList.size(); i++) {
+      String getRoomId = roomList.get(i).getRoomId();
+      if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+        mafia = roomList.get(i).getMafia();
+      }
+    }
+    List<String> memberList = socketHandler.getMemberNames(roomId);
+    for (int i = 0; i < mafia.size(); i++) {
+      memberList.remove(mafia.get(i));
+    }
+    try {
+      if (memberList == null) memberList = new ArrayList<>();
+      memberListString.put("civilList",memberList);
+      return memberListString.toJSONString();
+    } catch (Exception e) {
+      memberListString.put("civilList",new ArrayList<>());
+      return memberListString.toJSONString();
+    }
+  }
+
   @RequestMapping("/BBalGangEDa")
   public @ResponseBody
   String BBalGangEDa(@RequestParam HashMap<Object, Object> params) {
@@ -322,6 +352,88 @@ public class MainController {
       return "executed";
     } catch (Exception e) {
       return "executeFail";
+    }
+  }
+
+  @RequestMapping("/mafiaKill")
+  public @ResponseBody
+  String mafiaKill(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    try {
+      int userCount = 0;
+      ArrayList<String> equalList = new ArrayList<>();
+      int equalIndex = 0;
+      String userName = "";
+      Boolean resultEqual = true;
+      for(int i=0; i<roomList.size(); i++) {
+        String getRoomId = roomList.get(i).getRoomId();
+        if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          if (CollectionUtils.isEmpty(votes)) {
+            socketHandler.mafiaKill(roomId, userName);
+            break;
+          }
+          Iterator<String> keys = votes.keySet().iterator();
+          while( keys.hasNext() ){
+            String key = keys.next();
+            if (userCount < votes.get(key)) {
+              userCount = votes.get(key);
+              userName = key;
+              resultEqual = false;
+              if (equalIndex != 0) {
+                equalList = new ArrayList<>();
+                equalIndex = 0;
+              }
+            } else if (userCount == votes.get(key)) {
+              equalList.add(equalIndex,key);
+              equalIndex++;
+              resultEqual = true;
+            }
+          }
+
+          if (resultEqual) {
+            equalList.add(userName);
+            Collections.shuffle(equalList);
+            userName = equalList.get(0);
+          }
+          socketHandler.mafiaKill(roomId, userName);
+          votes = new HashMap<>();
+          roomList.get(i).setVotes(votes);
+          break;
+        }
+      }
+      return "executed";
+    } catch (Exception e) {
+      return "executeFail";
+    }
+  }
+
+  @RequestMapping("/mafiaVote")
+  public @ResponseBody
+  String mafiaVote(@RequestParam HashMap<Object, Object> params) {
+    String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
+    String playerId = StringUtils.isEmpty(params.get("playerId")) == true ? "" : params.get("playerId").toString();
+
+    try {
+      for(int i=0; i<roomList.size(); i++) {
+        String getRoomId = roomList.get(i).getRoomId();
+        if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
+          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          if (CollectionUtils.isEmpty(votes)) {
+            votes = new HashMap<>();
+            votes.put(playerId,1);
+          } else if (votes.get(playerId) == null){
+            votes.put(playerId,1);
+          } else {
+            votes.put(playerId, votes.get(playerId) + 1);
+          }
+          roomList.get(i).setVotes(votes);
+          break;
+        }
+      }
+      return "mafiaVoteComplete";
+    } catch (Exception e) {
+      return "mafiaVoteFail";
     }
   }
 }

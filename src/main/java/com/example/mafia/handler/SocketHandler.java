@@ -98,6 +98,23 @@ public class SocketHandler extends TextWebSocketHandler {
         JSONObject startObj = new JSONObject();
         startObj.put("type", "voteStarted");
         messageSend(jsonGetRoomId, startObj);
+      } else if (jsonGetType.equals("mafiaVote")) {
+        int idx = -1;
+        for (int i = 0; i < rls.size(); i++) {
+          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
+          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+            idx = i;
+            break;
+          }
+        }
+        if (idx != -1) {
+          rls.set(idx,temp);
+        }
+
+        JSONObject startObj = new JSONObject();
+        startObj.put("type", "mafiaVoteStarted");
+        messageSend(jsonGetRoomId, startObj);
       } else if (rls.size() > 0) {
         String senderAlive = "";
         for (int i = 0; i < rls.size(); i++) {
@@ -481,6 +498,7 @@ public class SocketHandler extends TextWebSocketHandler {
           break;
         }
       }
+      temp.put("voteStatus","end");
 
       if (idx != -1) {
         HashMap<String, String> memberList = (HashMap<String, String>) temp.get("memberList");
@@ -503,6 +521,42 @@ public class SocketHandler extends TextWebSocketHandler {
         sendObj.put("memberName", userName);
         messageSend(jsonGetRoomId, sendObj);
       }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void mafiaKill(String jsonGetRoomId, String userName) {
+    try {
+      HashMap<String, Object> temp = new HashMap<>();
+      Boolean excecutedFlag = false;
+
+      int idx = -1;
+      for (int i = 0; i < rls.size(); i++) {
+        String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
+        if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
+          temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
+          idx = i;
+          break;
+        }
+      }
+      temp.put("voteStatus","start");
+
+      if (idx != -1) {
+        HashMap<String, String> memberList = (HashMap<String, String>) temp.get("memberList");
+        if (StringUtils.isEmpty(memberList.get(userName))) {
+          excecutedFlag = true;
+        } else {
+          String excecutedPlayer = memberList.get(userName) + "_status";
+          temp.put(excecutedPlayer,"zombie");
+          rls.set(idx,temp);
+        }
+      }
+
+      JSONObject sendObj = new JSONObject();
+      sendObj.put("type", "mafiaKill");
+      sendObj.put("memberName", userName);
+      messageSend(jsonGetRoomId, sendObj);
     } catch (Exception e) {
       e.printStackTrace();
     }

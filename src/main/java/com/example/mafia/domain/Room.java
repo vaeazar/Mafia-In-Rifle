@@ -13,4 +13,5 @@ public class Room {
   Boolean roomStatus;
   HashMap<String, Integer> votes;
   HashMap<String, Integer> zombie;
+  List<String> mafia;
 }

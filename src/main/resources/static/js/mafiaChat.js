@@ -1,5 +1,6 @@
 var socketVar;
 var jbRandom = Math.random();
+let voteCompFlag = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   //checkRefresh();
@@ -91,6 +92,12 @@ function wsEvt() {
         });
         $("#memberList").html(memberListTag);
         $("#memberList").scrollTop($("#chating")[0].scrollHeight);
+
+        if (!voteCompFlag) {
+          let btnContain = document.querySelector('#memberNameBtn');
+          let target = btnContain.querySelector('.player_' + jsonTemp.outMemberName);
+          target.remove();
+        }
       } else if (jsonTemp.type == "resultEqual") {
         $("#chating").append(
             "<p class='newMemberJoin' style='color:red;'>투표결과 아무도 처형되지 않습니다.</p>");
@@ -100,11 +107,14 @@ function wsEvt() {
             "<p class='newMemberJoin' style='color:red;'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 처형당했습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
         $('#modalBtn').remove();
+        voteCompFlag = false;
       } else if (jsonTemp.type == "adminLeft") {
         let tempHtml = '';
         tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
         tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
         tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
+        tempHtml += '<td><button onclick="mafiaVote()">마피아 개시</button></td>';
+        tempHtml += '<td><button onclick="tempMafiaKillBtn()">마피아 처형</button></td>';
         if (jsonTemp.isAdmin) {
           $("#chatRoomHeader").append(tempHtml);
         }
@@ -116,8 +126,19 @@ function wsEvt() {
         tempHtml += '<td><button id="modalBtn" onclick="tempVoteClick()">투표</button></td>';
         $("#uiBtn").append(tempHtml);
         $("#chating").append(
-            "<p class='newMemberJoin' style='color:red;'>처형 투표가 시작되었습니다.</p>");
+            "<p class='newMemberJoin' style='color:red;'>재판이 시작되었습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
+      } else if (jsonTemp.type == "mafiaVoteStarted") {
+        $('#modalBtn').remove();
+        let tempHtml = '';
+        let myJob = $('#myJob').val();
+        if (myJob == 'mafia') {
+          tempHtml += '<td><button id="modalBtn" onclick="tempVoteClick()">투표</button></td>';
+          $("#uiBtn").append(tempHtml);
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>처형 투표가 시작되었습니다.</p>");
+          $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        }
       } else if (jsonTemp.type == "fail") {
         if (jsonTemp.failReason == 'nameExist') {
           $("#yourMsg").hide();
@@ -467,7 +488,20 @@ function voteOpen() {
     let tempList = tempJson.memberList;
     let btnHtml = '';
     tempList.forEach(function (e,i,a) {
-      btnHtml += "<button onclick='playerClick(\""+e+"\")' class='voteBtn'>"+e+"</button>";
+      btnHtml += "<button onclick='playerClick(\""+e+"\")' class='voteBtn player_"+e+"'>"+e+"</button>";
+    });
+    $('#memberNameBtn').html(btnHtml);
+  });
+}
+
+function mafiaVoteOpen() {
+  let roomId = {roomId: $('#roomId').val()};
+  commonAjax('/getCivilNames', roomId, 'post', function (result) {
+    let tempJson = JSON.parse(result);
+    let tempList = tempJson.memberList;
+    let btnHtml = '';
+    tempList.forEach(function (e,i,a) {
+      btnHtml += "<button onclick='playerClick(\""+e+"\")' class='voteBtn player_"+e+"'>"+e+"</button>";
     });
     $('#memberNameBtn').html(btnHtml);
   });
@@ -483,6 +517,21 @@ function playerClick(selectPlayerName) {
     btnHtml += "<p>"+selectPlayerName+"님을 선택하셨습니다.</p>";
     $('#memberNameBtn').html(btnHtml);
     $('#modalBtn').remove();
+    voteCompFlag = true;
+  });
+}
+
+function mafiaClick(selectPlayerName) {
+  let param = {
+    roomId : $('#roomId').val(),
+    playerId : selectPlayerName
+  };
+  let btnHtml = '';
+  commonAjax('/mafiaVote', param, 'post', function () {
+    btnHtml += "<p>"+selectPlayerName+"님을 선택하셨습니다.</p>";
+    $('#memberNameBtn').html(btnHtml);
+    $('#modalBtn').remove();
+    voteCompFlag = true;
   });
 }
 
@@ -491,7 +540,8 @@ function tempKillBtn() {
     roomId : $('#roomId').val()
   };
   commonAjax('/cutOffHerHead', param, 'post', function () {
-    console.log('처형 완료');
+    console.log('재판 완료');
+    voteCompFlag = false;
   });
 }
 
@@ -502,6 +552,24 @@ function voteStart() {
     roomId: $('#roomId').val()
   }
   socketVar.send(JSON.stringify(option));
+}
+
+function mafiaVote() {
+  var option;
+  option = {
+    type: "mafiaVote",
+    roomId: $('#roomId').val()
+  }
+  socketVar.send(JSON.stringify(option));
+}
+
+function tempMafiaKillBtn() {
+  let param = {
+    roomId : $('#roomId').val()
+  };
+  commonAjax('/mafiaKill', param, 'post', function () {
+    console.log('처형 완료');
+  });
 }
 
 function cleanChatSpace() {

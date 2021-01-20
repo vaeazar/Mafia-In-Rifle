@@ -25,6 +25,12 @@ function tempVoteClick() {
   modal.style.display = "block";
 }
 
+function mafiaVoteClick() {
+  mafiaVoteOpen();
+  var modal = document.getElementById('voteList');
+  modal.style.display = "block";
+}
+
 function closeVoteList() {
   var modal = document.getElementById('voteList');
   modal.style.display = "none";
