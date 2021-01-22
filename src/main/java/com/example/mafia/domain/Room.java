@@ -1,5 +1,6 @@
 package com.example.mafia.domain;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import lombok.Data;
@@ -14,4 +15,5 @@ public class Room {
   HashMap<String, Integer> votes;
   HashMap<String, Integer> zombie;
   List<String> mafia;
+  HashMap<String, String> jobs;
 }

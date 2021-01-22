@@ -1,6 +1,7 @@
 var socketVar;
 var jbRandom = Math.random();
 let voteCompFlag = false;
+const testFlag = true;
 
 document.addEventListener("DOMContentLoaded", function () {
   //checkRefresh();
@@ -28,14 +29,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return false;
   };
+  // document.querySelector('#mafiaChatTh').remove();
+  // document.querySelector('#mafiaChatTd').remove();
 
-  if (Math.floor(jbRandom * 2) == 1) {
-    $('#myJob').val('mafia');
-  } else {
-    $('#myJob').val('citizen');
-    document.querySelector('#mafiaChatTh').remove();
-    document.querySelector('#mafiaChatTd').remove();
-  }
+  // if (Math.floor(jbRandom * 2) == 1) {
+  //   $('#myJob').val('mafia');
+  // } else {
+  //   if (testFlag) {
+  //     $('#myJob').val('mafia');
+  //   } else {
+  //     $('#myJob').val('citizen');
+  //     document.querySelector('#mafiaChatTh').remove();
+  //     document.querySelector('#mafiaChatTd').remove();
+  //   }
+  // }
 });
 
 function wsOpen() {
@@ -64,10 +71,10 @@ function wsEvt() {
         let tempHtml = '';
         tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
         tempHtml += '<button onclick="startGameMafia()" id="startBtn" class="startBtn">마피아 식별용 시작</button>';
-        tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
-        tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
+        tempHtml += '<td><button onclick="voteStart()">재판 개시</button></td>';
+        tempHtml += '<td><button onclick="tempKillBtn()">재판 완료</button></td>';
         tempHtml += '<td><button onclick="mafiaVote()">마피아 개시</button></td>';
-        tempHtml += '<td><button onclick="tempMafiaKillBtn()">마피아 처형</button></td>';
+        tempHtml += '<td><button onclick="tempMafiaKillBtn()">마피아 완료</button></td>';
         if (jsonTemp.isAdmin) {
           $("#chatRoomHeader").append(tempHtml);
         }
@@ -102,12 +109,21 @@ function wsEvt() {
           target.remove();
         }
       } else if (jsonTemp.type == "resultEqual") {
+        $('#modalBtn').remove();
         $("#chating").append(
             "<p class='newMemberJoin' style='color:red;'>투표결과 아무도 처형되지 않습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
       } else if (jsonTemp.type == "excecuteComplete") {
+        $('#modalBtn').remove();
         $("#chating").append(
             "<p class='newMemberJoin' style='color:red;'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 처형당했습니다.</p>");
+        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        $('#modalBtn').remove();
+        voteCompFlag = false;
+      } else if (jsonTemp.type == "mafiaKillComplete") {
+        $('#modalBtn').remove();
+        $("#chating").append(
+            "<p class='newMemberJoin' style='color:red;'>" + decodeURI(jsonTemp.memberName,'UTF-8') + " 님이 마피아에게 죽었습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
         $('#modalBtn').remove();
         voteCompFlag = false;
@@ -116,19 +132,61 @@ function wsEvt() {
         tempHtml += '<button onclick="startGame()" id="startBtn" class="startBtn">시작</button>';
         tempHtml += '<button onclick="startGameMafia()" id="startBtn" class="startBtn">마피아 식별용 시작</button>';
         tempHtml += '<td><button onclick="voteStart()">투표 개시</button></td>';
-        tempHtml += '<td><button onclick="tempKillBtn()">처형</button></td>';
+        tempHtml += '<td><button onclick="tempKillBtn()">투표 완료</button></td>';
         tempHtml += '<td><button onclick="mafiaVote()">마피아 개시</button></td>';
-        tempHtml += '<td><button onclick="tempMafiaKillBtn()">마피아 처형</button></td>';
+        tempHtml += '<td><button onclick="tempMafiaKillBtn()">마피아 완료</button></td>';
         if (jsonTemp.isAdmin) {
           $("#chatRoomHeader").append(tempHtml);
         }
       } else if (jsonTemp.type == "roomIsStart") {
-        timer();
+        //timer(5,0,'낮 시간');
+        let param = {
+          roomId : $('#roomId').val(),
+          playerId : $('#userId').val()
+        };
+        // commonAjax('/getMafiaList', param, 'post', function () {
+        // });
+      } else if (jsonTemp.type == 'gameStart') {
+        let myJob = jsonTemp.myJob;
+        document.querySelector('#myJob').value = myJob;
+        if (myJob == 'mafia') {
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>게임이 시작되었습니다.</p>");
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>당신의 직업은 마피아입니다.</p>");
+          $("#chating").scrollTop($("#chating")[0].scrollHeight);
+          $("#uiBtn").prepend(
+              '<td id="mafiaChatTd"><input type="checkbox" id="mafiaChat"></td>');
+          $("#uiBtn").prepend(
+              '<th id="mafiaChatTh">마피아 챗</th>');
+        } else if (myJob == 'cop') {
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>게임이 시작되었습니다.</p>");
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>당신의 직업은 경찰입니다.</p>");
+          $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        } else if (myJob == 'doctor') {
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>게임이 시작되었습니다.</p>");
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>당신의 직업은 의사입니다.</p>");
+          $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        } else {
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>게임이 시작되었습니다.</p>");
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>당신의 직업은 시민입니다.</p>");
+          $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        }
       } else if (jsonTemp.type == "voteStarted") {
         $('#modalBtn').remove();
         let tempHtml = '';
         tempHtml += '<td><button id="modalBtn" onclick="tempVoteClick()">투표</button></td>';
         $("#uiBtn").append(tempHtml);
+        $("#chating").append(
+            "<p class='newMemberJoin' style='color:red;'>재판이 시작되었습니다.</p>");
+        $("#chating").scrollTop($("#chating")[0].scrollHeight);
+      } else if (jsonTemp.type == "zombie_voteStarted") {
         $("#chating").append(
             "<p class='newMemberJoin' style='color:red;'>재판이 시작되었습니다.</p>");
         $("#chating").scrollTop($("#chating")[0].scrollHeight);
@@ -140,7 +198,16 @@ function wsEvt() {
           tempHtml += '<td><button id="modalBtn" onclick="tempVoteClick()">투표</button></td>';
           $("#uiBtn").append(tempHtml);
           $("#chating").append(
-              "<p class='newMemberJoin' style='color:red;'>처형 투표가 시작되었습니다.</p>");
+              "<p class='newMemberJoin' style='color:red;'>암살 투표가 시작되었습니다.</p>");
+          $("#chating").scrollTop($("#chating")[0].scrollHeight);
+        }
+      } else if (jsonTemp.type == "zombie_mafiaVoteStarted") {
+        $('#modalBtn').remove();
+        let tempHtml = '';
+        let myJob = $('#myJob').val();
+        if (myJob == 'mafia') {
+          $("#chating").append(
+              "<p class='newMemberJoin' style='color:red;'>암살 투표가 시작되었습니다.</p>");
           $("#chating").scrollTop($("#chating")[0].scrollHeight);
         }
       } else if (jsonTemp.type == "fail") {
@@ -322,7 +389,35 @@ function startGame() {
   commonAjax('/setRoomStart', roomId, 'post', function () {
     $("#startBtn").remove();
   });
-  showYourJob();
+  //showYourJob();
+
+  var option;
+  option = {
+    type: "roomIsStart",
+    roomId: $('#roomId').val()
+  }
+  socketVar.send(JSON.stringify(option));
+}
+
+
+function startGameMafia() {
+  var roomId = {roomId: $('#roomId').val()};
+  var memberCnt = $(".member").length;
+  var mafia = '';
+  //테스트 위해서 8명 이하여도 게임 시작되게 임시로 수정
+  /*if (memberCnt<8) {
+    $("#chating").append("<p class='game-not-start' style='color:white;'>게임 시작에는 8명 이상이 필요합니다!</p>");
+  } else {
+    commonAjax('/setRoomStart', roomId, 'post', function () {
+      $("#startBtn").remove();
+    });
+    showYourJob();
+  }*/
+
+  commonAjax('/setRoomStart', roomId, 'post', function () {
+    //$("#startBtn").remove();
+  });
+  //showYourJob();
 
   var option;
   option = {

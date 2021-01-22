@@ -43,8 +43,6 @@
     <div id="yourMsg">
         <table class="inputTable">
             <tr id="uiBtn">
-                <th id="mafiaChatTh">마피아 챗</th>
-                <td id="mafiaChatTd"><input type="checkbox" id="mafiaChat"></td>
                 <td>메시지</td>
                 <td><input id="chatting" class="chatting-input" placeholder="보내실 메시지를 입력하세요."></td>
                 <td><button onclick="send()" id="sendBtn">보내기</button></td>

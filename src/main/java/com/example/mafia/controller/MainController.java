@@ -145,10 +145,33 @@ public class MainController {
    */
   @RequestMapping("/setRoomStart")
   public @ResponseBody void setRoomStart(@RequestParam HashMap<Object, Object> params){
+    HashMap<String, String> jobs = new HashMap<>();
     for (int i = 0; i < roomList.size(); i++) {
       Room room = roomList.get(i);
       if (room.getRoomId().equals(params.get("roomId"))) {
+        String roomId = params.get("roomId").toString();
         room.setRoomStatus(false);
+        jobs = socketHandler.giveJobsDGJung(roomId);
+        room.setJobs(jobs);
+        roomList.set(i,room);
+      }
+    }
+  }
+
+  /**
+   * 방 시작
+   * @param params
+   * @return
+   */
+  @RequestMapping("/getMafiaList")
+  public @ResponseBody void getMafiaList(@RequestParam HashMap<Object, Object> params){
+    for (int i = 0; i < roomList.size(); i++) {
+      Room room = roomList.get(i);
+      if (room.getMafia() == null) room.setMafia(new ArrayList<>());
+      if (room.getRoomId().equals(params.get("roomId"))) {
+        room.setRoomStatus(false);
+        List<String> mafiaList = room.getMafia();
+        mafiaList.add(String.valueOf(params.get("userId")));
         roomList.set(i,room);
       }
     }

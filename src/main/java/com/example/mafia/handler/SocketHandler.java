@@ -134,6 +134,8 @@ public class SocketHandler extends TextWebSocketHandler {
                             || k.equals("memberCount")    //방 인원 수
                             || k.contains("_status")      //플레이어 상태 값
                             || k.equals("voteStatus")      //플레이어 상태 값
+                            || k.equals("jobList")        //직업 리스트
+                            || k.equals("jobSessList")      //직업 리스트 sessionId
                             || k.equals("roomStatus");    //방 상태 값
 
           if (doNotSend) { //방 정보 통과
@@ -413,7 +415,6 @@ public class SocketHandler extends TextWebSocketHandler {
   private void messageSend(String jsonGetRoomId, JSONObject sendObj) {
     try {
       HashMap<String, Object> temp = new HashMap<>();
-
       for (int i = 0; i < rls.size(); i++) {
         String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
         if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
@@ -421,24 +422,83 @@ public class SocketHandler extends TextWebSocketHandler {
           break;
         }
       }
+      Boolean voteGubun = sendObj.get("type").equals("voteStarted")           //투표 시작
+                      || sendObj.get("type").equals("mafiaVoteStarted");      //암살 시작
+      Boolean gameStart = sendObj.get("type").equals("gameStart");            //게임 시작
 
-      //해당 방의 세션들만 찾아서 메시지를 발송해준다.
-      for (String k : temp.keySet()) {
-        Boolean doNotSend = k.equals("roomId")          //방 고유 값
-                          || k.equals("adminSession")   //방장 아이디
-                          || k.equals("memberList")     //맴버 정보
-                          || k.equals("memberCount")    //방 인원 수
-                          || k.contains("_status")      //플레이어 상태 값
-                          || k.equals("voteStatus")      //플레이어 상태 값
-                          || k.equals("roomStatus");    //방 상태 값
+      if (voteGubun) {
+        JSONObject zombieObj = new JSONObject(sendObj);
+        zombieObj.put("type","zombie_" + zombieObj.get("type"));
+        //해당 방의 세션들만 찾아서 메시지를 발송해준다.
+        for (String k : temp.keySet()) {
+          Boolean doNotSend = k.equals("roomId")          //방 고유 값
+              || k.equals("adminSession")   //방장 아이디
+              || k.equals("memberList")     //맴버 정보
+              || k.equals("memberCount")    //방 인원 수
+              || k.contains("_status")      //플레이어 상태 값
+              || k.equals("voteStatus")      //플레이어 상태 값
+              || k.equals("jobList")        //직업 리스트
+              || k.equals("jobSessList")      //직업 리스트 sessionId
+              || k.equals("roomStatus");    //방 상태 값
 
-        if (doNotSend) { //방 정보 통과
-          continue;
+          if (doNotSend) { //방 정보 통과
+            continue;
+          }
+
+          WebSocketSession wss = (WebSocketSession) temp.get(k);
+          if (wss != null) {
+            if (temp.get(k + "_status").equals("zombie")) {
+              wss.sendMessage(new TextMessage(zombieObj.toJSONString()));
+            } else {
+              wss.sendMessage(new TextMessage(sendObj.toJSONString()));
+            }
+          }
         }
+      } else if (gameStart) {
+        HashMap<String, String> jobsBySessId = (HashMap<String, String>) sendObj.get("jobList");
+        //해당 방의 세션들만 찾아서 메시지를 발송해준다.
+        for (String k : temp.keySet()) {
+          Boolean doNotSend = k.equals("roomId")          //방 고유 값
+              || k.equals("adminSession")   //방장 아이디
+              || k.equals("memberList")     //맴버 정보
+              || k.equals("memberCount")    //방 인원 수
+              || k.contains("_status")      //플레이어 상태 값
+              || k.equals("voteStatus")      //플레이어 상태 값
+              || k.equals("jobList")        //직업 리스트
+              || k.equals("jobSessList")      //직업 리스트 sessionId
+              || k.equals("roomStatus");    //방 상태 값
 
-        WebSocketSession wss = (WebSocketSession) temp.get(k);
-        if (wss != null) {
-          wss.sendMessage(new TextMessage(sendObj.toJSONString()));
+          if (doNotSend) { //방 정보 통과
+            continue;
+          }
+
+          WebSocketSession wss = (WebSocketSession) temp.get(k);
+          if(wss != null) {
+            sendObj.put("myJob",jobsBySessId.get(k));
+            wss.sendMessage(new TextMessage(sendObj.toJSONString()));
+          }
+        }
+      } else {
+        //해당 방의 세션들만 찾아서 메시지를 발송해준다.
+        for (String k : temp.keySet()) {
+          Boolean doNotSend = k.equals("roomId")          //방 고유 값
+              || k.equals("adminSession")   //방장 아이디
+              || k.equals("memberList")     //맴버 정보
+              || k.equals("memberCount")    //방 인원 수
+              || k.contains("_status")      //플레이어 상태 값
+              || k.equals("voteStatus")      //플레이어 상태 값
+              || k.equals("jobList")        //직업 리스트
+              || k.equals("jobSessList")      //직업 리스트 sessionId
+              || k.equals("roomStatus");    //방 상태 값
+
+          if (doNotSend) { //방 정보 통과
+            continue;
+          }
+
+          WebSocketSession wss = (WebSocketSession) temp.get(k);
+          if(wss != null) {
+            wss.sendMessage(new TextMessage(sendObj.toJSONString()));
+          }
         }
       }
     } catch (IOException e) {
@@ -482,6 +542,52 @@ public class SocketHandler extends TextWebSocketHandler {
     }
 
     return jobList;
+  }
+
+  public HashMap<String, String> giveJobsDGJung(String roomId) {
+    int idx = 0;
+    HashMap<String, Object> changeRoomList = new HashMap<>();
+    for (int i = 0; i < rls.size(); i++) {
+      String getRoomId = (String) rls.get(i).get("roomId");
+      if (getRoomId.equals(roomId)) {
+        idx = i;
+        changeRoomList = rls.get(i);
+        break;
+      }
+    }
+    Map<String, String> memberList = (Map<String, String>) rls.get(idx).get("memberList");
+    int memberCnt = memberList.size();
+    String[] specialJobs = new String[]{"mafia","mafia","cop","doctor"};
+    ArrayList<String> memberNameList = new ArrayList<>();
+    HashMap<String, String> jobs = new HashMap<>();
+    HashMap<String, String> jobsBySessId = new HashMap<>();
+    String tempName = "";
+
+    for (String memberName : memberList.keySet()) {
+      memberNameList.add(memberName);
+    }
+    Collections.shuffle(memberNameList);
+
+    for (int i=0;i<4;i++) {
+      tempName = memberNameList.get(i);
+      jobs.put(tempName,specialJobs[i]);
+      jobsBySessId.put(memberList.get(tempName),specialJobs[i]);
+    }
+
+    for (int i=4;i<memberCnt;i++) {
+      tempName = memberNameList.get(i);
+      jobs.put(tempName,"citizen");
+      jobsBySessId.put(memberList.get(tempName),"citizen");
+    }
+    changeRoomList.put("jobList",jobs);
+    changeRoomList.put("jobSessList",jobsBySessId);
+    rls.set(idx,changeRoomList);
+
+    JSONObject sendObj = new JSONObject();
+    sendObj.put("type", "gameStart");
+    sendObj.put("jobList", jobsBySessId);
+    messageSend(roomId,sendObj);
+    return jobs;
   }
 
   public void cutOffHerHead(String jsonGetRoomId, String userName, Boolean resultEqual) {
@@ -554,7 +660,7 @@ public class SocketHandler extends TextWebSocketHandler {
       }
 
       JSONObject sendObj = new JSONObject();
-      sendObj.put("type", "mafiaKill");
+      sendObj.put("type", "mafiaKillComplete");
       sendObj.put("memberName", userName);
       messageSend(jsonGetRoomId, sendObj);
     } catch (Exception e) {
