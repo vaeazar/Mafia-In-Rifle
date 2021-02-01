@@ -1,5 +1,6 @@
 package com.example.mafia.handler;
 
+import com.example.mafia.domain.MafiaMessage;
 import com.example.mafia.domain.PlayerJob;
 import com.example.mafia.repository.MessageMongoDBRepository;
 import com.example.mafia.repository.PlayerJobMongoDBRepository;
@@ -11,6 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -34,7 +36,7 @@ public class SocketHandler extends TextWebSocketHandler {
   @Autowired
   private PlayerJobMongoDBRepository playerJobMongoDBRepository;
 
-  //HashMap<String, WebSocketSession> sessionMap = new HashMap<>(); //웹소켓 세션을 담아둘 맵
+  HashMap<String, WebSocketSession> sessionMap = new HashMap<>(); //웹소켓 세션을 담아둘 맵
   private static List<HashMap<String, Object>> rls = new ArrayList<>(); //웹소켓 세션을 담아둘 리스트 ---roomListSessions
 
   private static List<HashMap<String, Object>> players = new ArrayList<>(); //게임중인 플레이어 정보
@@ -154,14 +156,14 @@ public class SocketHandler extends TextWebSocketHandler {
           }
         }
       }
-//      MafiaMessage sendData = new MafiaMessage();
-//      sendData.setUserId(obj.get("userName").toString());
-//      sendData.setMessage(obj.get("msg").toString());
-//      messageMongoDBRepository.insert(sendData);
-//      for (String key : sessionMap.keySet()) {
-//        WebSocketSession wss = sessionMap.get(key);
-//        wss.sendMessage(new TextMessage(obj.toJSONString()));
-//      }
+      MafiaMessage sendData = new MafiaMessage();
+      sendData.setUserId(obj.get("userId").toString());
+      sendData.setMessage(obj.get("msg").toString());
+      messageMongoDBRepository.insert(sendData);
+      for (String key : sessionMap.keySet()) {
+        WebSocketSession wss = sessionMap.get(key);
+        wss.sendMessage(new TextMessage(obj.toJSONString()));
+      }
     } catch (IOException e) {
       e.printStackTrace();
     } catch (Exception e) {
@@ -262,6 +264,8 @@ public class SocketHandler extends TextWebSocketHandler {
     obj.put("sessionId", session.getId());
     session.sendMessage(new TextMessage(obj.toJSONString()));
     messageSend(roomId,listObj);
+
+
   }
 
   @Override

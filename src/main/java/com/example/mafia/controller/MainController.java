@@ -1,5 +1,6 @@
 package com.example.mafia.controller;
 
+import com.example.mafia.dao.RoomDao;
 import com.example.mafia.domain.Room;
 import com.example.mafia.domain.Vote;
 import com.example.mafia.handler.SocketHandler;
@@ -27,6 +28,9 @@ public class MainController {
 
   @Autowired
   SocketHandler socketHandler;
+
+  @Autowired
+  RoomDao roomDao;
 
 
   @RequestMapping("/")
@@ -104,6 +108,9 @@ public class MainController {
       uniqueValue += System.currentTimeMillis();
       room.setRoomId(uniqueValue);
       SocketHandler.setRoomId(uniqueValue);
+
+      roomDao.insert(room);
+
       roomList.add(room);
       mv.addObject("roomName", params.get("roomName"));
       mv.addObject("roomNumber", roomNumber);
