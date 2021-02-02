@@ -17,7 +17,6 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource("classpath:/application.properties")
-@MapperScan(basePackages = "com.example.mafia")
 public class DatabaseConfig {
     @Autowired
     private ApplicationContext applicationContext;
@@ -30,8 +29,7 @@ public class DatabaseConfig {
 
     @Bean
     public DataSource dataSource() {
-        DataSource dataSource = new HikariDataSource(hikariConfig());
-        return dataSource;
+        return new HikariDataSource(hikariConfig());
     }
 
     @Bean
