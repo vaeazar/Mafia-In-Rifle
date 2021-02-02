@@ -221,7 +221,18 @@ public class MainController {
     }
     int roomNumber = Integer.parseInt((String) params.get("roomNumber"));
     String roomId = params.get("roomId").toString();
+    String roomName = params.get("roomName").toString();
+    int roomCount = roomDao.selectRoomCount(roomId) + 1;
+    boolean roomStatus = roomDao.selectRoomStatus(roomId) == 1;
 
+    Room room = new Room();
+    room.setRoomId(roomId);
+    room.setRoomCount(roomCount);
+    room.setRoomName(roomName);
+    room.setRoomNumber(roomNumber);
+    room.setRoomStatus(roomStatus);
+
+    roomDao.insert(room);
     List<Room> new_list = roomList.stream().filter(o->o.getRoomNumber()==roomNumber).collect(Collectors.toList());
     if(new_list != null && new_list.size() > 0) {
       mv.addObject("roomName", params.get("roomName"));

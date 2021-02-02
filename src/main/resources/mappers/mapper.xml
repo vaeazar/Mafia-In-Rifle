@@ -6,4 +6,13 @@
         INSERT INTO room (roomNumber,roomName,roomId,roomCount,roomStatus)
         VALUES (#{roomNumber}, #{roomName}, #{roomId}, #{roomCount}, #{roomStatus})
     </insert>
+    <update id="update" parameterType="com.example.mafia.domain.Room"
+    <select id="selectRoomCount" parameterType="String" resultType="_int">
+        SELECT roomCount FROM room
+        WHERE roomId=#{roomId}
+    </select>
+    <select id="selectRoomStatus" parameterType="String" resultType="_int">
+        SELECT roomStatus FROM room
+        WHERE roomId=#{roomId}
+    </select>
 </mapper>

@@ -15,4 +15,16 @@ public class RoomDao {
     public void insert(Room room) {
         sqlSession.insert(NAMESPACE + "insert", room);
     }
+
+    public void update(Room room) {
+        sqlSession.update(NAMESPACE+"update", room);
+    }
+
+    public int selectRoomCount(String roomId) {
+        return sqlSession.selectOne(NAMESPACE+"selectRoomCount",roomId);
+    }
+
+    public int selectRoomStatus(String roomId) {
+        return sqlSession.selectOne(NAMESPACE+"selectRoomStatus", roomId);
+    }
 }
