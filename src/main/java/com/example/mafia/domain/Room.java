@@ -10,7 +10,8 @@ public class Room {
   String roomName;
   String roomId;
   int roomCount;
-  Boolean roomStatus;
+  String roomStatus;
+  int sessionIdx;
   HashMap<String, Integer> votes;
   HashMap<String, Integer> zombie;
   List<String> mafia;

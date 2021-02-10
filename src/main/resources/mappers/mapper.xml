@@ -3,15 +3,48 @@
 
 <mapper namespace="com.example.mafia.dao">
     <insert id="insert" parameterType="com.example.mafia.domain.Room">
-        INSERT INTO room (roomNumber,roomName,roomId,roomCount,roomStatus)
-        VALUES (#{roomNumber},#{roomName}, #{roomId}, #{roomCount}, #{roomStatus})
+        INSERT INTO room (ROOM_NAME,ROOM_ID,ROOM_COUNT,ROOM_STATUS)
+        VALUES (#{roomName}, #{roomId}, 1, #{roomStatus})
     </insert>
-    <select id="selectRoomCount" parameterType="String" resultType="_int">
-        SELECT roomCount FROM room
-        WHERE roomId=#{roomId}
+    <update id="changeRoomStatus" parameterType="com.example.mafia.domain.Room">
+        UPDATE room
+        SET ROOM_STATUS = #{roomStatus}
+        WHERE ROOM_ID = #{roomId}
+    </update>
+    <update id="decreaseRoomCount" parameterType="com.example.mafia.domain.Room">
+        UPDATE room
+        SET ROOM_COUNT = ROOM_COUNT - 1
+        WHERE ROOM_ID = #{roomId}
+    </update>
+    <update id="increaseRoomCount" parameterType="com.example.mafia.domain.Room">
+        UPDATE room
+        SET ROOM_COUNT = ROOM_COUNT + 1
+        WHERE ROOM_ID = #{roomId}
+    </update>
+    <update id="memberExit" parameterType="com.example.mafia.domain.Room">
+        UPDATE room
+        SET ROOM_COUNT = #{roomCount}
+    </update>
+    <delete id="deleteRoom" parameterType="com.example.mafia.domain.Room">
+        DELETE FROM room
+        WHERE ROOM_ID = #{roomId}
+    </delete>
+    <select id="selectRoomInfo" parameterType="String" resultType="com.example.mafia.domain.Room">
+        SELECT
+            ROOM_NUMBER AS roomNumber
+            ,ROOM_ID AS roomId
+            ,ROOM_NAME AS roomName
+            ,ROOM_STATUS AS roomStatus
+            ,ROOM_COUNT AS roomCount
+        FROM room
+        WHERE ROOM_ID=#{roomId}
     </select>
-    <select id="selectRoomStatus" parameterType="String" resultType="_int">
-        SELECT roomStatus FROM room
-        WHERE roomId=#{roomId}
+    <select id="selectRoomCount" parameterType="String" resultType="String">
+        SELECT ROOM_COUNT FROM room
+        WHERE ROOM_ID=#{roomId}
+    </select>
+    <select id="selectRoomStatus" parameterType="String" resultType="String">
+        SELECT ROOM_STATUS FROM room
+        WHERE ROOM_ID=#{roomId}
     </select>
 </mapper>

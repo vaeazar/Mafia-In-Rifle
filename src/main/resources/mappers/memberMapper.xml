@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.mafia.dao">
+    <insert id="memberInsert" parameterType="com.example.mafia.domain.Member">
+        INSERT INTO member (MEMBER_ID,MEMBER_NAME,MEMBER_ADMIN_YN,MEMBER_ROOM_ID,MEMBER_STATUS)
+        VALUES (#{memberId}, #{memberName}, #{memberRoomId}, #{memberAdminYN}, #{memberStatus})
+    </insert>
+    <update id="changeMemberStatus" parameterType="com.example.mafia.domain.Member">
+        UPDATE member
+        SET MEMBER_STATUS = #{memberStatus}
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+    <update id="setMemberAdmin" parameterType="com.example.mafia.domain.Member">
+        UPDATE member
+        SET MEMBER_ADMIN_YN = 'Y'
+        WHERE MEMBER_ID = #{memberId}
+    </update>
+    <delete id="deleteMember" parameterType="String">
+        DELETE FROM member
+        WHERE MEMBER_ID=#{memberId}
+    </delete>
+    <select id="selectMemberInfo" parameterType="String" resultType="com.example.mafia.domain.Member">
+        SELECT
+            MEMBER_NAME AS memberName
+            ,MEMBER_ADMIN_YN AS memberAdminYN
+            ,MEMBER_ROOM_ID AS memberRoomId
+            ,MEMBER_STATUS AS memberStatus
+            ,ROOM_COUNT AS roomCount
+        FROM member
+        WHERE MEMBER_ID=#{memberId}
+    </select>
+    <select id="getNextAdmin" parameterType="String" resultType="com.example.mafia.domain.Member">
+        SELECT
+            MEMBER_ID AS memberId
+            ,MEMBER_NAME AS memberName
+        FROM member
+        WHERE MEMBER_ROOM_ID = #{memberRoomId}
+        ORDER BY NO ASC
+        LIMIT 1;
+    </select>
+    <select id="selectMemberNames" parameterType="String" resultType="hashmap">
+        SELECT
+            MEMBER_NAME AS memberName
+        FROM member
+        WHERE MEMBER_ROOM_ID=#{memberRoomId}
+        ORDER BY NO ASC
+    </select>
+    <select id="selectMemberName" parameterType="String" resultType="String">
+        SELECT MEMBER_NAME AS memberName
+        FROM member
+        WHERE MEMBER_ID=#{memberId}
+    </select>
+    <select id="selectOverlapName" parameterType="com.example.mafia.domain.Member" resultType="String">
+        SELECT MEMBER_NAME FROM member
+        WHERE MEMBER_NANE=#{memberName}
+        AND MEMBER_ROOM_ID = #{memberRoomId}
+    </select>
+    <select id="selectMemberStatus" parameterType="String" resultType="String">
+        SELECT MEMBER_STATUS FROM member
+        WHERE MEMBER_ID=#{memberId}
+    </select>
+    <select id="selectMemberIds" parameterType="String" resultType="hashmap">
+        SELECT
+        MEMBER_ID AS memberId
+        FROM member
+        WHERE MEMBER_ROOM_ID=#{memberRoomId}
+    </select>
+    <select id="selectMemberInfoList" parameterType="String" resultType="hashmap">
+        SELECT
+        MEMBER_NAME AS memberName
+        ,MEMBER_ADMIN_YN AS memberAdminYN
+        ,MEMBER_ROOM_ID AS memberRoomId
+        ,MEMBER_STATUS AS memberStatus
+        ,ROOM_COUNT AS roomCount
+        FROM member
+        WHERE MEMBER_ROOM_ID=#{memberRoomId}
+    </select>
+</mapper>

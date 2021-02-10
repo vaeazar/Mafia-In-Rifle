@@ -105,7 +105,7 @@ function createChatingRoom(res) {
           "<td class='num'>" + (idx + 1) + "</td>" +
           "<td class='room'>" + newRoomName + "</td>" +
           "<td class='count'>" + newRoomCount + "/15</td>"
-      if (newRoomCount > 14 || !newRoomStatus) {
+      if (newRoomCount > 14 || newRoomStatus != 'wait') {
         tag += "<td class='go'><button type='button' class='fullBang'>참여</button></td>"
       } else {
         tag += "<td class='go'><button type='button' onclick='goRoom(\""

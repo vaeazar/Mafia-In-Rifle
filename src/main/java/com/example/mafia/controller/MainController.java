@@ -84,9 +84,7 @@ public class MainController {
   public ModelAndView createRoom(@RequestParam HashMap<Object, Object> params, HttpServletRequest request) {
     ModelAndView mv = new ModelAndView();
     String roomName = (String) params.get("roomName");
-    System.out.println("roomName = " + roomName);
     String url = request.getHeader("referer");
-    System.out.println("refffffffff = " + request.getHeader("referer"));
     if (url == null) {
       mv.addObject("errorFlag","deletedRoom");
       mv.addObject("errorMessage", "비정상적인 접근입니다.");
@@ -103,7 +101,7 @@ public class MainController {
       room.setRoomNumber(++roomNumber);
       room.setRoomName(roomName);
       room.setRoomCount(0);
-      room.setRoomStatus(true);
+      room.setRoomStatus("wait");
       String uniqueValue = UUID.randomUUID().toString().substring(0,8);
       uniqueValue += System.currentTimeMillis();
       room.setRoomId(uniqueValue);
@@ -117,7 +115,6 @@ public class MainController {
       mv.addObject("roomId", uniqueValue);
       mv.addObject("userId", params.get("userId"));
       mv.setViewName("mafiaChat");
-      System.out.println("roomList = " + roomList.size());
     } else {
       mv.addObject("errorFlag","deletedRoom");
       mv.addObject("errorMessage", "존재하지 않는 방입니다.");
@@ -157,7 +154,7 @@ public class MainController {
       Room room = roomList.get(i);
       if (room.getRoomId().equals(params.get("roomId"))) {
         String roomId = params.get("roomId").toString();
-        room.setRoomStatus(false);
+        room.setRoomStatus("start");
         jobs = socketHandler.giveJobsDGJung(roomId);
         room.setJobs(jobs);
         roomList.set(i,room);
@@ -176,7 +173,7 @@ public class MainController {
       Room room = roomList.get(i);
       if (room.getMafia() == null) room.setMafia(new ArrayList<>());
       if (room.getRoomId().equals(params.get("roomId"))) {
-        room.setRoomStatus(false);
+        room.setRoomStatus("start");
         List<String> mafiaList = room.getMafia();
         mafiaList.add(String.valueOf(params.get("userId")));
         roomList.set(i,room);
@@ -184,21 +181,20 @@ public class MainController {
     }
   }
 
-  /**
-   * 방 제거
-   * @param params
-   * @return
-   */
-  @RequestMapping("/delRoom")
-  public @ResponseBody void delRoom(@RequestParam HashMap<Object, Object> params){
-    for (int i = 0; i < roomList.size(); i++) {
-      Room room = roomList.get(i);
-      if (room.getRoomId().equals(params.get("roomId"))) {
-        room.setRoomStatus(false);
-        roomList.remove(i);
-      }
-    }
-  }
+//  /**
+//   * 방 제거
+//   * @param params
+//   * @return
+//   */
+//  @RequestMapping("/delRoom")
+//  public @ResponseBody void delRoom(@RequestParam HashMap<Object, Object> params){
+//    for (int i = 0; i < roomList.size(); i++) {
+//      Room room = roomList.get(i);
+//      if (room.getRoomId().equals(params.get("roomId"))) {
+//        roomList.remove(i);
+//      }
+//    }
+//  }
 
   /**
    * 채팅방
@@ -221,18 +217,7 @@ public class MainController {
     }
     int roomNumber = Integer.parseInt((String) params.get("roomNumber"));
     String roomId = params.get("roomId").toString();
-    String roomName = params.get("roomName").toString();
-    int roomCount = roomDao.selectRoomCount(roomId) + 1;
-    boolean roomStatus = roomDao.selectRoomStatus(roomId) == 1;
 
-    Room room = new Room();
-    room.setRoomId(roomId);
-    room.setRoomCount(roomCount);
-    room.setRoomName(roomName);
-    room.setRoomNumber(roomNumber);
-    room.setRoomStatus(roomStatus);
-
-    roomDao.insert(room);
     List<Room> new_list = roomList.stream().filter(o->o.getRoomNumber()==roomNumber).collect(Collectors.toList());
     if(new_list != null && new_list.size() > 0) {
       mv.addObject("roomName", params.get("roomName"));
