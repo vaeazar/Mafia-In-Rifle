@@ -18,6 +18,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -171,10 +172,10 @@ public class SocketHandler extends TextWebSocketHandler {
           }
         }
       }
-      MafiaMessage sendData = new MafiaMessage();
-      sendData.setUserId(obj.get("userId").toString());
-      sendData.setMessage(obj.get("msg").toString());
-      messageMongoDBRepository.insert(sendData);
+//      MafiaMessage sendData = new MafiaMessage();
+//      sendData.setUserId(obj.get("userId").toString());
+//      sendData.setMessage(obj.get("msg").toString());
+//      messageMongoDBRepository.insert(sendData);
       for (String key : sessionMap.keySet()) {
         WebSocketSession wss = sessionMap.get(key);
         wss.sendMessage(new TextMessage(obj.toJSONString()));
@@ -187,6 +188,7 @@ public class SocketHandler extends TextWebSocketHandler {
   }
 
   @Override
+  @Transactional
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
     //소켓 연결
     super.afterConnectionEstablished(session);
@@ -215,6 +217,7 @@ public class SocketHandler extends TextWebSocketHandler {
     Member parameterMember = new Member();
     parameterMember.setMemberName(userName);
     parameterMember.setMemberRoomId(roomId);
+    parameterMember.setMemberAdminYN("N");
     String overlapName = memberDao.selectOverlapName(parameterMember);
 
     if (flag) { //존재하는 방이라면 세션만 추가한다.
@@ -248,6 +251,7 @@ public class SocketHandler extends TextWebSocketHandler {
       listObj.put("newMemberName", userName);
       map.put(session.getId(), session);
       parameterMember.setMemberStatus("alive");
+      parameterMember.setMemberId(session.getId());
       roomDao.increaseRoomCount(roomId);
       memberDao.insert(parameterMember);
       List<String> memberNames = memberDao.selectMemberNames(roomId);

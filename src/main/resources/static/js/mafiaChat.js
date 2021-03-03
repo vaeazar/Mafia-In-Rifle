@@ -2,6 +2,11 @@ var socketVar;
 var jbRandom = Math.random();
 let voteCompFlag = false;
 const testFlag = true;
+var testval1;
+var testval2;
+var testval3;
+var testval4;
+var testval5;
 
 document.addEventListener("DOMContentLoaded", function () {
   //checkRefresh();
@@ -86,7 +91,7 @@ function wsEvt() {
         let memberList = jsonTemp.memberList;
         let memberListTag = '';
         memberList.forEach(function(item,index,arr) {
-          memberListTag += "<p class='member'>" + decodeURI(item,'UTF-8') + "</p>";
+          memberListTag += "<p class='member'>" + decodeURI(item.memberName,'UTF-8') + "</p>";
         });
         $("#memberList").html(memberListTag);
         $("#memberList").scrollTop($("#chating")[0].scrollHeight);
@@ -98,7 +103,7 @@ function wsEvt() {
         let memberList = jsonTemp.memberList;
         let memberListTag = '';
         memberList.forEach(function(item,index,arr) {
-          memberListTag += "<p class='member'>" + decodeURI(item,'UTF-8') + "</p>";
+          memberListTag += "<p class='member'>" + decodeURI(item.memberName,'UTF-8') + "</p>";
         });
         $("#memberList").html(memberListTag);
         $("#memberList").scrollTop($("#chating")[0].scrollHeight);

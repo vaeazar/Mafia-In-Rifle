@@ -1,6 +1,7 @@
 package com.example.mafia.dao;
 
 import com.example.mafia.domain.Room;
+import java.util.List;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -34,6 +35,10 @@ public class RoomDao {
 
     public Room selectRoomInfo(String roomId) {
         return sqlSession.selectOne(NAMESPACE+"selectRoomInfo",roomId);
+    }
+
+    public List<Room> selectRoomInfoList() {
+        return sqlSession.selectList(NAMESPACE+"selectRoomInfoList");
     }
 
     public int selectRoomCount(String roomId) {

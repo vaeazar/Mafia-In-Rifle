@@ -4,7 +4,7 @@
 <mapper namespace="com.example.mafia.dao">
     <insert id="insert" parameterType="com.example.mafia.domain.Room">
         INSERT INTO room (ROOM_NAME,ROOM_ID,ROOM_COUNT,ROOM_STATUS)
-        VALUES (#{roomName}, #{roomId}, 1, #{roomStatus})
+        VALUES (#{roomName}, #{roomId}, 0, #{roomStatus})
     </insert>
     <update id="changeRoomStatus" parameterType="com.example.mafia.domain.Room">
         UPDATE room
@@ -38,6 +38,15 @@
             ,ROOM_COUNT AS roomCount
         FROM room
         WHERE ROOM_ID=#{roomId}
+    </select>
+    <select id="selectRoomInfoList" resultType="hashmap">
+        SELECT
+        ROOM_NUMBER AS roomNumber
+        ,ROOM_ID AS roomId
+        ,ROOM_NAME AS roomName
+        ,ROOM_STATUS AS roomStatus
+        ,ROOM_COUNT AS roomCount
+        FROM room
     </select>
     <select id="selectRoomCount" parameterType="String" resultType="String">
         SELECT ROOM_COUNT FROM room

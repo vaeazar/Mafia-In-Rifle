@@ -4,7 +4,7 @@
 <mapper namespace="com.example.mafia.dao">
     <insert id="memberInsert" parameterType="com.example.mafia.domain.Member">
         INSERT INTO member (MEMBER_ID,MEMBER_NAME,MEMBER_ADMIN_YN,MEMBER_ROOM_ID,MEMBER_STATUS)
-        VALUES (#{memberId}, #{memberName}, #{memberRoomId}, #{memberAdminYN}, #{memberStatus})
+        VALUES (#{memberId}, #{memberName}, #{memberAdminYN}, #{memberRoomId}, #{memberStatus})
     </insert>
     <update id="changeMemberStatus" parameterType="com.example.mafia.domain.Member">
         UPDATE member
@@ -26,7 +26,6 @@
             ,MEMBER_ADMIN_YN AS memberAdminYN
             ,MEMBER_ROOM_ID AS memberRoomId
             ,MEMBER_STATUS AS memberStatus
-            ,ROOM_COUNT AS roomCount
         FROM member
         WHERE MEMBER_ID=#{memberId}
     </select>
@@ -53,7 +52,7 @@
     </select>
     <select id="selectOverlapName" parameterType="com.example.mafia.domain.Member" resultType="String">
         SELECT MEMBER_NAME FROM member
-        WHERE MEMBER_NANE=#{memberName}
+        WHERE MEMBER_NAME=#{memberName}
         AND MEMBER_ROOM_ID = #{memberRoomId}
     </select>
     <select id="selectMemberStatus" parameterType="String" resultType="String">

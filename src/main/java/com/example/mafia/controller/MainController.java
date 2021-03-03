@@ -2,7 +2,6 @@ package com.example.mafia.controller;
 
 import com.example.mafia.dao.RoomDao;
 import com.example.mafia.domain.Room;
-import com.example.mafia.domain.Vote;
 import com.example.mafia.handler.SocketHandler;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 @Controller
 public class MainController {
 
-  List<Room> roomList = new ArrayList<Room>();
+  List<Room> roomArrayList = new ArrayList<Room>();
   static int roomNumber = 0;
 
   @Autowired
@@ -98,7 +97,7 @@ public class MainController {
     }
     if(roomName != null && !roomName.trim().equals("")) {
       Room room = new Room();
-      room.setRoomNumber(++roomNumber);
+      room.setRoomNumber(0);
       room.setRoomName(roomName);
       room.setRoomCount(0);
       room.setRoomStatus("wait");
@@ -109,7 +108,7 @@ public class MainController {
 
       roomDao.insert(room);
 
-      roomList.add(room);
+      roomArrayList.add(room);
       mv.addObject("roomName", params.get("roomName"));
       mv.addObject("roomNumber", roomNumber);
       mv.addObject("roomId", uniqueValue);
@@ -130,17 +129,27 @@ public class MainController {
    */
   @RequestMapping("/getRoom")
   public @ResponseBody List<Room> getRoom(@RequestParam HashMap<Object, Object> params){
-    List <Room> sendList = new ArrayList<>();
-    for (int i = 0; i < roomList.size(); i++) {
-      Room room = roomList.get(i);
-      room.setRoomCount(socketHandler.getRoomCount(room.getRoomId()));
-      roomList.set(i,room);
-      if (socketHandler.getRoomCount(room.getRoomId()) > 0) {
-        sendList.add(room);
-      }
-    }
-    return sendList;
+    return roomDao.selectRoomInfoList();
   }
+
+//  /**
+//   * 방 정보가져오기
+//   * @param params
+//   * @return
+//   */
+//  @RequestMapping("/getRoom")
+//  public @ResponseBody List<Room> getRoom(@RequestParam HashMap<Object, Object> params){
+//    List <Room> sendList = new ArrayList<>();
+//    for (int i = 0; i < roomList.size(); i++) {
+//      Room room = roomList.get(i);
+//      room.setRoomCount(socketHandler.getRoomCount(room.getRoomId()));
+//      roomList.set(i,room);
+//      if (socketHandler.getRoomCount(room.getRoomId()) > 0) {
+//        sendList.add(room);
+//      }
+//    }
+//    return sendList;
+//  }
 
   /**
    * 방 시작
@@ -150,14 +159,14 @@ public class MainController {
   @RequestMapping("/setRoomStart")
   public @ResponseBody void setRoomStart(@RequestParam HashMap<Object, Object> params){
     HashMap<String, String> jobs = new HashMap<>();
-    for (int i = 0; i < roomList.size(); i++) {
-      Room room = roomList.get(i);
+    for (int i = 0; i < roomArrayList.size(); i++) {
+      Room room = roomArrayList.get(i);
       if (room.getRoomId().equals(params.get("roomId"))) {
         String roomId = params.get("roomId").toString();
         room.setRoomStatus("start");
         jobs = socketHandler.giveJobsDGJung(roomId);
         room.setJobs(jobs);
-        roomList.set(i,room);
+        roomArrayList.set(i,room);
       }
     }
   }
@@ -169,14 +178,14 @@ public class MainController {
    */
   @RequestMapping("/getMafiaList")
   public @ResponseBody void getMafiaList(@RequestParam HashMap<Object, Object> params){
-    for (int i = 0; i < roomList.size(); i++) {
-      Room room = roomList.get(i);
+    for (int i = 0; i < roomArrayList.size(); i++) {
+      Room room = roomArrayList.get(i);
       if (room.getMafia() == null) room.setMafia(new ArrayList<>());
       if (room.getRoomId().equals(params.get("roomId"))) {
         room.setRoomStatus("start");
         List<String> mafiaList = room.getMafia();
         mafiaList.add(String.valueOf(params.get("userId")));
-        roomList.set(i,room);
+        roomArrayList.set(i,room);
       }
     }
   }
@@ -218,11 +227,12 @@ public class MainController {
     int roomNumber = Integer.parseInt((String) params.get("roomNumber"));
     String roomId = params.get("roomId").toString();
 
-    List<Room> new_list = roomList.stream().filter(o->o.getRoomNumber()==roomNumber).collect(Collectors.toList());
-    if(new_list != null && new_list.size() > 0) {
-      mv.addObject("roomName", params.get("roomName"));
-      mv.addObject("roomNumber", params.get("roomNumber"));
-      mv.addObject("roomId", params.get("roomId"));
+    Room existChk = roomDao.selectRoomInfo(roomId);
+    //List<Room> new_list = roomArrayList.stream().filter(o->o.getRoomNumber()==roomNumber).collect(Collectors.toList());
+    if(existChk != null) {
+      mv.addObject("roomName", existChk.getRoomName());
+      mv.addObject("roomNumber", existChk.getRoomNumber());
+      mv.addObject("roomId", existChk.getRoomId());
       mv.addObject("userId", params.get("userId"));
       mv.setViewName("mafiaChat");
     }else {
@@ -237,10 +247,10 @@ public class MainController {
   public @ResponseBody
   String roomDelete(@PathVariable("id") String roomId) {
     try {
-      for(int i=0; i<roomList.size(); i++) {
-        String getRoomId = roomList.get(i).getRoomId();
+      for(int i=0; i< roomArrayList.size(); i++) {
+        String getRoomId = roomArrayList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-          roomList.remove(i);
+          roomArrayList.remove(i);
           break;
         }
       }
@@ -254,8 +264,8 @@ public class MainController {
   public @ResponseBody
   ArrayList<Map<String, String>> startGame(@PathVariable("id") String roomId) {
     ArrayList<Map<String, String>> jobs = new ArrayList<>();
-    for (int i=0;i<roomList.size();i++) {
-      String getRoomId = roomList.get(i).getRoomId();
+    for (int i=0;i< roomArrayList.size();i++) {
+      String getRoomId = roomArrayList.get(i).getRoomId();
       if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
         jobs = socketHandler.giveJobs(roomId);
       }
@@ -293,10 +303,10 @@ public class MainController {
     if (roomId.equals("")) {
       return memberListString.toJSONString();
     }
-    for(int i=0; i<roomList.size(); i++) {
-      String getRoomId = roomList.get(i).getRoomId();
+    for(int i=0; i< roomArrayList.size(); i++) {
+      String getRoomId = roomArrayList.get(i).getRoomId();
       if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-        mafia = roomList.get(i).getMafia();
+        mafia = roomArrayList.get(i).getMafia();
       }
     }
     List<String> memberList = socketHandler.getMemberNames(roomId);
@@ -320,10 +330,10 @@ public class MainController {
     String playerId = StringUtils.isEmpty(params.get("playerId")) == true ? "" : params.get("playerId").toString();
 
     try {
-      for(int i=0; i<roomList.size(); i++) {
-        String getRoomId = roomList.get(i).getRoomId();
+      for(int i=0; i< roomArrayList.size(); i++) {
+        String getRoomId = roomArrayList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          HashMap<String, Integer> votes = roomArrayList.get(i).getVotes();
           if (CollectionUtils.isEmpty(votes)) {
             votes = new HashMap<>();
             votes.put(playerId,1);
@@ -332,7 +342,7 @@ public class MainController {
           } else {
             votes.put(playerId, votes.get(playerId) + 1);
           }
-          roomList.get(i).setVotes(votes);
+          roomArrayList.get(i).setVotes(votes);
           break;
         }
       }
@@ -350,10 +360,10 @@ public class MainController {
       int userCount = 0;
       String userName = "";
       Boolean resultEqual = true;
-      for(int i=0; i<roomList.size(); i++) {
-        String getRoomId = roomList.get(i).getRoomId();
+      for(int i=0; i< roomArrayList.size(); i++) {
+        String getRoomId = roomArrayList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          HashMap<String, Integer> votes = roomArrayList.get(i).getVotes();
           if (CollectionUtils.isEmpty(votes)) {
             socketHandler.cutOffHerHead(roomId, userName, resultEqual);
             break;
@@ -371,7 +381,7 @@ public class MainController {
           }
           socketHandler.cutOffHerHead(roomId, userName, resultEqual);
           votes = new HashMap<>();
-          roomList.get(i).setVotes(votes);
+          roomArrayList.get(i).setVotes(votes);
           break;
         }
       }
@@ -391,10 +401,10 @@ public class MainController {
       int equalIndex = 0;
       String userName = "";
       Boolean resultEqual = true;
-      for(int i=0; i<roomList.size(); i++) {
-        String getRoomId = roomList.get(i).getRoomId();
+      for(int i=0; i< roomArrayList.size(); i++) {
+        String getRoomId = roomArrayList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          HashMap<String, Integer> votes = roomArrayList.get(i).getVotes();
           if (CollectionUtils.isEmpty(votes)) {
             socketHandler.mafiaKill(roomId, userName);
             break;
@@ -424,7 +434,7 @@ public class MainController {
           }
           socketHandler.mafiaKill(roomId, userName);
           votes = new HashMap<>();
-          roomList.get(i).setVotes(votes);
+          roomArrayList.get(i).setVotes(votes);
           break;
         }
       }
@@ -441,10 +451,10 @@ public class MainController {
     String playerId = StringUtils.isEmpty(params.get("playerId")) == true ? "" : params.get("playerId").toString();
 
     try {
-      for(int i=0; i<roomList.size(); i++) {
-        String getRoomId = roomList.get(i).getRoomId();
+      for(int i=0; i< roomArrayList.size(); i++) {
+        String getRoomId = roomArrayList.get(i).getRoomId();
         if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-          HashMap<String, Integer> votes = roomList.get(i).getVotes();
+          HashMap<String, Integer> votes = roomArrayList.get(i).getVotes();
           if (CollectionUtils.isEmpty(votes)) {
             votes = new HashMap<>();
             votes.put(playerId,1);
@@ -453,7 +463,7 @@ public class MainController {
           } else {
             votes.put(playerId, votes.get(playerId) + 1);
           }
-          roomList.get(i).setVotes(votes);
+          roomArrayList.get(i).setVotes(votes);
           break;
         }
       }
