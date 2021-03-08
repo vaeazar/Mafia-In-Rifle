@@ -11,6 +11,8 @@ public class Room {
   String roomId;
   int roomCount;
   String roomStatus;
+  String roomVoteYN;
+  String roomMafiaVoteYN;
   int sessionIdx;
   HashMap<String, Integer> votes;
   HashMap<String, Integer> zombie;

@@ -21,6 +21,26 @@
         SET ROOM_COUNT = ROOM_COUNT + 1
         WHERE ROOM_ID = #{roomId}
     </update>
+    <update id="roomVoteStart" parameterType="String">
+        UPDATE room
+        SET ROOM_VOTE_YN = 'Y'
+        WHERE ROOM_ID = #{roomId}
+    </update>
+    <update id="roomVoteEnd" parameterType="String">
+        UPDATE room
+        SET ROOM_VOTE_YN = 'N'
+        WHERE ROOM_ID = #{roomId}
+    </update>
+    <update id="roomMafiaVoteStart" parameterType="String">
+        UPDATE room
+        SET ROOM_MAFIA_VOTE_YN = 'Y'
+        WHERE ROOM_ID = #{roomId}
+    </update>
+    <update id="roomMafiaVoteEnd" parameterType="String">
+        UPDATE room
+        SET ROOM_MAFIA_VOTE_YN = 'N'
+        WHERE ROOM_ID = #{roomId}
+    </update>
     <update id="memberExit" parameterType="com.example.mafia.domain.Room">
         UPDATE room
         SET ROOM_COUNT = #{roomCount}
@@ -28,6 +48,9 @@
     <delete id="deleteRoom" parameterType="com.example.mafia.domain.Room">
         DELETE FROM room
         WHERE ROOM_ID = #{roomId}
+    </delete>
+    <delete id="deleteAllRoom">
+        DELETE FROM room
     </delete>
     <select id="selectRoomInfo" parameterType="String" resultType="com.example.mafia.domain.Room">
         SELECT

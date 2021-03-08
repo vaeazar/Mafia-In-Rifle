@@ -1,6 +1,8 @@
 package com.example.mafia.controller;
 
+import com.example.mafia.dao.MemberDao;
 import com.example.mafia.dao.RoomDao;
+import com.example.mafia.domain.Member;
 import com.example.mafia.domain.Room;
 import com.example.mafia.handler.SocketHandler;
 import org.json.simple.JSONObject;
@@ -31,6 +33,8 @@ public class MainController {
   @Autowired
   RoomDao roomDao;
 
+  @Autowired
+  MemberDao memberDao;
 
   @RequestMapping("/")
   public ModelAndView Index() {
@@ -159,15 +163,12 @@ public class MainController {
   @RequestMapping("/setRoomStart")
   public @ResponseBody void setRoomStart(@RequestParam HashMap<Object, Object> params){
     HashMap<String, String> jobs = new HashMap<>();
-    for (int i = 0; i < roomArrayList.size(); i++) {
-      Room room = roomArrayList.get(i);
-      if (room.getRoomId().equals(params.get("roomId"))) {
-        String roomId = params.get("roomId").toString();
-        room.setRoomStatus("start");
-        jobs = socketHandler.giveJobsDGJung(roomId);
-        room.setJobs(jobs);
-        roomArrayList.set(i,room);
-      }
+    String roomId = String.valueOf(params.get("roomId"));
+    Room startedRoom = roomDao.selectRoomInfo(roomId);
+    if (!ObjectUtils.isEmpty(startedRoom)) {
+      startedRoom.setRoomStatus("start");
+      socketHandler.giveJobsDGJung(roomId);
+      roomDao.changeRoomStatus(startedRoom);
     }
   }
 
@@ -282,7 +283,7 @@ public class MainController {
     if (roomId.equals("")) {
       return memberListString.toJSONString();
     }
-    List<String> memberList = socketHandler.getMemberNames(roomId);
+    List<String> memberList = memberDao.selectAliveMemberNames(roomId);
     try {
       if (memberList == null) memberList = new ArrayList<>();
       memberListString.put("memberList",memberList);
@@ -298,21 +299,12 @@ public class MainController {
   String getCivilNames(@RequestParam HashMap<Object, Object> params) {
     String roomId = StringUtils.isEmpty(params.get("roomId")) == true ? "" : params.get("roomId").toString();
     JSONObject memberListString = new JSONObject();
-    List<String> mafia = new ArrayList<>();
 
     if (roomId.equals("")) {
       return memberListString.toJSONString();
     }
-    for(int i=0; i< roomArrayList.size(); i++) {
-      String getRoomId = roomArrayList.get(i).getRoomId();
-      if (!StringUtils.isEmpty(getRoomId) && getRoomId.equals(roomId)) {
-        mafia = roomArrayList.get(i).getMafia();
-      }
-    }
-    List<String> memberList = socketHandler.getMemberNames(roomId);
-    for (int i = 0; i < mafia.size(); i++) {
-      memberList.remove(mafia.get(i));
-    }
+    List<String> memberList = memberDao.selectCivil(roomId);
+
     try {
       if (memberList == null) memberList = new ArrayList<>();
       memberListString.put("civilList",memberList);

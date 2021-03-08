@@ -17,6 +17,22 @@ public class RoomDao {
         sqlSession.insert(NAMESPACE + "insert", room);
     }
 
+    public void roomVoteStart(String roomId) {
+        sqlSession.update(NAMESPACE + "roomVoteStart", roomId);
+    }
+
+    public void roomVoteEnd(String roomId) {
+        sqlSession.update(NAMESPACE + "roomVoteEnd", roomId);
+    }
+
+    public void roomMafiaVoteStart(String roomId) {
+        sqlSession.update(NAMESPACE + "roomMafiaVoteStart", roomId);
+    }
+
+    public void roomMafiaVoteEnd(String roomId) {
+        sqlSession.update(NAMESPACE + "roomMafiaVoteEnd", roomId);
+    }
+
     public void changeRoomStatus(Room room) {
         sqlSession.update(NAMESPACE + "changeRoomStatus", room);
     }
@@ -31,6 +47,10 @@ public class RoomDao {
 
     public void deleteRoom(String roomId) {
         sqlSession.delete(NAMESPACE+"deleteRoom",roomId);
+    }
+
+    public void deleteAllRoom() {
+        sqlSession.delete(NAMESPACE+"deleteAllRoom");
     }
 
     public Room selectRoomInfo(String roomId) {

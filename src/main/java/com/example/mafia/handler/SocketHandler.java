@@ -63,6 +63,7 @@ public class SocketHandler extends TextWebSocketHandler {
       String jsonGetRoomId = (String) obj.get("roomId");
       String jsonGetSessionId = (String) obj.get("sessionId");
       HashMap<String, Object> temp = new HashMap<>();
+      Room roomInfo = roomDao.selectRoomInfo(jsonGetRoomId);
       if (jsonGetType.equals("jobSave")) {
         HashMap<String, String> jobSave = new HashMap<>();
         String[] jsonGetPlayerId = obj.get("playerId").toString().split("|");
@@ -75,74 +76,29 @@ public class SocketHandler extends TextWebSocketHandler {
           playerJobMongoDBRepository.insert(playerJob);
         }
       } else if (jsonGetType.equals("roomIsStart")) {
-        int idx = -1;
-        for (int i = 0; i < rls.size(); i++) {
-          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
-          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
-            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
-            idx = i;
-            break;
-          }
-        }
-        Room parameterRoom = new Room();
-        parameterRoom.setRoomId(jsonGetRoomId);
-        parameterRoom.setRoomStatus("start");
-        roomDao.changeRoomStatus(parameterRoom);
+        roomInfo.setRoomId(jsonGetRoomId);
+        roomInfo.setRoomStatus("start");
+        roomDao.changeRoomStatus(roomInfo);
 
-        temp.put("roomStatus","start");
-        if (idx != -1) {
-          rls.set(idx,temp);
-        }
-
-        HashMap<String, String> jobSave = new HashMap<>();
         JSONObject startObj = new JSONObject();
         startObj.put("type", "roomIsStart");
         messageSend(jsonGetRoomId, startObj);
       } else if (jsonGetType.equals("voteStart")) {
-        int idx = -1;
-        for (int i = 0; i < rls.size(); i++) {
-          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
-          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
-            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
-            idx = i;
-            break;
-          }
-        }
-        temp.put("voteStatus","start");
-        if (idx != -1) {
-          rls.set(idx,temp);
-        }
+        roomDao.roomVoteStart(jsonGetRoomId);
 
         JSONObject startObj = new JSONObject();
         startObj.put("type", "voteStarted");
         messageSend(jsonGetRoomId, startObj);
       } else if (jsonGetType.equals("mafiaVote")) {
-        int idx = -1;
-        for (int i = 0; i < rls.size(); i++) {
-          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
-          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
-            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
-            idx = i;
-            break;
-          }
-        }
-        if (idx != -1) {
-          rls.set(idx,temp);
-        }
+        roomDao.roomMafiaVoteStart(jsonGetRoomId);
 
         JSONObject startObj = new JSONObject();
         startObj.put("type", "mafiaVoteStarted");
         messageSend(jsonGetRoomId, startObj);
       } else if (rls.size() > 0) {
-        String senderAlive = "";
-        for (int i = 0; i < rls.size(); i++) {
-          String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
-          if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
-            temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
-            senderAlive = StringUtils.isEmpty(temp.get(jsonGetSessionId + "_status")) == true ? "zombie" : temp.get(jsonGetSessionId+"_status").toString();
-            break;
-          }
-        }
+        Member memberInfo = memberDao.selectMemberInfo(jsonGetSessionId);
+        String senderAlive = memberInfo.getMemberStatus();
+        temp = rls.get(roomInfo.getSessionIdx());
 
         //해당 방의 세션들만 찾아서 메시지를 발송해준다.
         for (String k : temp.keySet()) {
@@ -160,7 +116,7 @@ public class SocketHandler extends TextWebSocketHandler {
             continue;
           }
 
-          String playerStatus = StringUtils.isEmpty(temp.get(k + "_status")) == true ? "zombie" : temp.get(k+"_status").toString();
+          String playerStatus = memberDao.selectMemberStatus(String.valueOf(temp.get(k)));
 
           if (senderAlive.equals("zombie") && !playerStatus.equals("zombie")) {
             continue;
@@ -214,15 +170,16 @@ public class SocketHandler extends TextWebSocketHandler {
       flag = true;
       idx = roomInfo.getSessionIdx();
     }
-    Member parameterMember = new Member();
-    parameterMember.setMemberName(userName);
-    parameterMember.setMemberRoomId(roomId);
-    parameterMember.setMemberAdminYN("N");
+    Member parameterMember = Member.builder()
+                                    .memberName(userName)
+                                    .memberRoomId(roomId)
+                                    .memberAdminYN("N")
+                                    .build();
     String overlapName = memberDao.selectOverlapName(parameterMember);
 
     if (flag) { //존재하는 방이라면 세션만 추가한다.
       JSONObject failObj = new JSONObject();
-      HashMap<String, Object> map = rls.get(idx);
+          HashMap<String, Object> map = rls.get(idx);
       String roomStatus = StringUtils.isEmpty(roomInfo.getRoomStatus()) == true ? "start" : roomInfo.getRoomStatus();
       int memberCount = roomInfo.getRoomCount();
       if (memberCount > 14) {
@@ -602,7 +559,7 @@ public class SocketHandler extends TextWebSocketHandler {
 
           WebSocketSession wss = (WebSocketSession) temp.get(k);
           if (wss != null) {
-            if (temp.get(k + "_status").equals("zombie")) {
+            if (memberDao.selectMemberStatus(String.valueOf(temp.get(k))).equals("zombie")) {
               wss.sendMessage(new TextMessage(zombieObj.toJSONString()));
             } else {
               wss.sendMessage(new TextMessage(sendObj.toJSONString()));
@@ -699,76 +656,54 @@ public class SocketHandler extends TextWebSocketHandler {
     return jobList;
   }
 
-  public HashMap<String, String> giveJobsDGJung(String roomId) {
-    int idx = 0;
-    HashMap<String, Object> changeRoomList = new HashMap<>();
-    for (int i = 0; i < rls.size(); i++) {
-      String getRoomId = (String) rls.get(i).get("roomId");
-      if (getRoomId.equals(roomId)) {
-        idx = i;
-        changeRoomList = rls.get(i);
-        break;
-      }
-    }
-    Map<String, String> memberList = (Map<String, String>) rls.get(idx).get("memberList");
+  public void giveJobsDGJung(String roomId) {
+    List<Member> memberList = memberDao.selectMemberInfoList(roomId);
     int memberCnt = memberList.size();
     String[] specialJobs = new String[]{"mafia","mafia","cop","doctor"};
-    ArrayList<String> memberNameList = new ArrayList<>();
-    HashMap<String, String> jobs = new HashMap<>();
     HashMap<String, String> jobsBySessId = new HashMap<>();
-    String tempName = "";
+    Member tempMember;
 
-    for (String memberName : memberList.keySet()) {
-      memberNameList.add(memberName);
-    }
-    Collections.shuffle(memberNameList);
+    Collections.shuffle(memberList);
 
     for (int i=0;i<4;i++) {
-      tempName = memberNameList.get(i);
-      jobs.put(tempName,specialJobs[i]);
-      jobsBySessId.put(memberList.get(tempName),specialJobs[i]);
+      tempMember = memberList.get(i);
+      tempMember.setMemberJob(specialJobs[i]);
+      memberDao.changeMemberJob(tempMember);
+      jobsBySessId.put(tempMember.getMemberName(),specialJobs[i]);
     }
 
     for (int i=4;i<memberCnt;i++) {
-      tempName = memberNameList.get(i);
-      jobs.put(tempName,"citizen");
-      jobsBySessId.put(memberList.get(tempName),"citizen");
+      tempMember = memberList.get(i);
+      tempMember.setMemberJob("civil");
+      memberDao.changeMemberJob(tempMember);
+      jobsBySessId.put(tempMember.getMemberName(),"civil");
     }
-    changeRoomList.put("jobList",jobs);
-    changeRoomList.put("jobSessList",jobsBySessId);
-    rls.set(idx,changeRoomList);
 
     JSONObject sendObj = new JSONObject();
     sendObj.put("type", "gameStart");
     sendObj.put("jobList", jobsBySessId);
     messageSend(roomId,sendObj);
-    return jobs;
   }
 
   public void cutOffHerHead(String jsonGetRoomId, String userName, Boolean resultEqual) {
     try {
       HashMap<String, Object> temp = new HashMap<>();
       Boolean excecutedFlag = resultEqual;
-
-      int idx = -1;
-      for (int i = 0; i < rls.size(); i++) {
-        String roomId = (String) rls.get(i).get("roomId"); //세션리스트의 저장된 방번호를 가져와서
-        if (roomId.equals(jsonGetRoomId)) { //같은값의 방이 존재한다면
-          temp = rls.get(i); //해당 방번호의 세션리스트의 존재하는 모든 object값을 가져온다.
-          idx = i;
-          break;
-        }
-      }
+      Room roomInfo = roomDao.selectRoomInfo(jsonGetRoomId);
+      Member parameterMember = Member.builder()
+                                .memberRoomId(jsonGetRoomId)
+                                .memberName(userName)
+                                .build();
+      int idx = roomInfo.getSessionIdx();
+      roomDao.roomVoteEnd(jsonGetRoomId);
       temp.put("voteStatus","end");
 
       if (idx != -1) {
-        HashMap<String, String> memberList = (HashMap<String, String>) temp.get("memberList");
-        if (StringUtils.isEmpty(memberList.get(userName))) {
+        Member memberInfo = memberDao.selectMemberInfoByName(parameterMember);
+        if (StringUtils.isEmpty(memberInfo.getMemberName())) {
           excecutedFlag = true;
         } else {
-          String excecutedPlayer = memberList.get(userName) + "_status";
-          temp.put(excecutedPlayer,"zombie");
-          rls.set(idx,temp);
+          memberDao.makePlayerZombie(memberInfo.getMemberId());
         }
       }
 
