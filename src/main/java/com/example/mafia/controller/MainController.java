@@ -39,7 +39,7 @@ public class MainController {
   @RequestMapping("/")
   public ModelAndView Index() {
     ModelAndView mv = new ModelAndView();
-    mv.setViewName("room");
+    mv.setViewName("lunchRoom");
     return mv;
   }
 
